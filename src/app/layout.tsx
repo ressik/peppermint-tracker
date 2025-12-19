@@ -34,7 +34,7 @@ export default function RootLayout({
         </main>
 
         {/* Footer */}
-        <footer className="relative z-10 text-center py-8 text-white/30 text-xs">
+        <footer className="relative z-10 text-center py-8 text-white/50 text-xs">
           <p>Peppermint Tracker</p>
         </footer>
       </body>

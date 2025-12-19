@@ -86,14 +86,14 @@ export default function Home() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Hero Section */}
       <div className="text-center mb-16">
-        <p className="text-white/40 text-xs uppercase tracking-[0.3em] mb-4">
+        <p className="text-white/60 text-xs uppercase tracking-[0.3em] mb-4">
           ✦ A Neighborhood Christmas Tradition ✦
         </p>
         <h1 className="text-5xl sm:text-7xl font-light mb-6">
           <span className="text-white">Peppermint</span>{" "}
           <span className="text-[#c41e3a]">the Penguin</span>
         </h1>
-        <p className="text-base text-white/50 max-w-md mx-auto mb-8">
+        <p className="text-base text-white/70 max-w-md mx-auto mb-8">
           Track the adventures of our wandering inflatable friend
         </p>
         <div className="flex items-center justify-center gap-3">
@@ -105,7 +105,7 @@ export default function Home() {
           </button>
           <Link
             href="/leaderboard"
-            className="px-5 py-2 text-sm font-medium text-white/50 hover:text-white/80 transition-all"
+            className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
           >
             Leaderboard
           </Link>

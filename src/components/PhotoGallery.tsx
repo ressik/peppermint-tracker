@@ -14,7 +14,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
   if (photos.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-white/40 text-sm">
+        <p className="text-white/60 text-sm">
           No sightings yet
         </p>
       </div>
@@ -72,9 +72,9 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                 {selectedPhoto.thiefName}
               </h3>
               {selectedPhoto.caption && (
-                <p className="text-white/70 text-sm mb-2">{selectedPhoto.caption}</p>
+                <p className="text-white/80 text-sm mb-2">{selectedPhoto.caption}</p>
               )}
-              <p className="text-xs text-white/40 mt-4">
+              <p className="text-xs text-white/60 mt-4">
                 {new Date(selectedPhoto.createdAt).toLocaleDateString()}
               </p>
               <button

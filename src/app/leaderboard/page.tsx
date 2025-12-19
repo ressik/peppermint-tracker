@@ -52,7 +52,7 @@ export default function LeaderboardPage() {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Header */}
       <div className="text-center mb-12">
-        <p className="text-white/50 text-sm uppercase tracking-widest mb-3">
+        <p className="text-white/70 text-sm uppercase tracking-widest mb-3">
           Season Rankings
         </p>
         <h1 className="text-4xl font-light text-white mb-8">
@@ -60,7 +60,7 @@ export default function LeaderboardPage() {
         </h1>
         <Link
           href="/"
-          className="px-5 py-2 text-sm font-medium text-white/50 hover:text-white/80 transition-all"
+          className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
         >
           Gallery
         </Link>
@@ -69,11 +69,11 @@ export default function LeaderboardPage() {
       {/* Leaderboard */}
       {isLoading ? (
         <div className="text-center py-20">
-          <p className="text-white/40 text-sm">Loading...</p>
+          <p className="text-white/60 text-sm">Loading...</p>
         </div>
       ) : entries.length === 0 ? (
         <div className="text-center py-20">
-          <p className="text-white/40 text-sm">No steals recorded yet</p>
+          <p className="text-white/60 text-sm">No steals recorded yet</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -93,7 +93,7 @@ export default function LeaderboardPage() {
                 </span>
                 <span className="text-white/90">{entry.name}</span>
               </div>
-              <span className="text-white/50 text-sm">
+              <span className="text-white/70 text-sm">
                 {entry.steals} {entry.steals === 1 ? 'steal' : 'steals'}
               </span>
             </div>
