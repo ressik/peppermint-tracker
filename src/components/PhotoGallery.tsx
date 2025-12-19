@@ -52,7 +52,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1 text-sm text-white/70 hover:text-white mt-2"
+                  className="inline-flex items-center gap-1 text-base text-white/70 hover:text-white mt-2"
                 >
                   🎬 Watch Video
                 </a>
@@ -93,7 +93,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                   href={selectedPhoto.videoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-base text-white/70 hover:text-white mb-2"
+                  className="inline-flex items-center gap-2 text-lg text-white/70 hover:text-white mb-2"
                 >
                   🎬 Watch Video
                 </a>
