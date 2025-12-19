@@ -8,7 +8,6 @@ interface UploadModalProps {
   onUpload: (data: {
     file: File;
     uploaderName: string;
-    thiefName: string;
     caption: string;
     isSteal: boolean;
   }) => Promise<void>;
@@ -16,7 +15,6 @@ interface UploadModalProps {
 
 export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalProps) {
   const [uploaderName, setUploaderName] = useState('');
-  const [thiefName, setThiefName] = useState('');
   const [caption, setCaption] = useState('');
   const [isSteal, setIsSteal] = useState(true);
   const [file, setFile] = useState<File | null>(null);
@@ -38,20 +36,18 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !uploaderName || !thiefName) return;
+    if (!file || !uploaderName) return;
 
     setIsUploading(true);
     try {
       await onUpload({
         file,
         uploaderName,
-        thiefName,
         caption,
         isSteal,
       });
       // Reset form
       setUploaderName('');
-      setThiefName('');
       setCaption('');
       setIsSteal(true);
       setFile(null);
@@ -66,7 +62,6 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
 
   const resetAndClose = () => {
     setUploaderName('');
-    setThiefName('');
     setCaption('');
     setIsSteal(true);
     setFile(null);
@@ -139,21 +134,6 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
             />
           </div>
 
-          {/* Thief Name */}
-          <div>
-            <label className="block text-sm font-medium text-white/80 mb-1">
-              Who Stole Peppermint? *
-            </label>
-            <input
-              type="text"
-              value={thiefName}
-              onChange={(e) => setThiefName(e.target.value)}
-              required
-              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-[#ffd700]"
-              placeholder="The penguin thief's name"
-            />
-          </div>
-
           {/* Caption */}
           <div>
             <label className="block text-sm font-medium text-white/80 mb-1">
@@ -182,7 +162,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!file || !uploaderName || !thiefName || isUploading}
+            disabled={!file || !uploaderName || isUploading}
             className="w-full py-3 text-sm font-medium text-white bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isUploading ? (

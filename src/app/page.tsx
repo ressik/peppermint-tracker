@@ -44,7 +44,6 @@ export default function Home() {
   const handleUpload = async (data: {
     file: File;
     uploaderName: string;
-    thiefName: string;
     caption: string;
     isSteal: boolean;
   }) => {
@@ -66,11 +65,11 @@ export default function Home() {
       .from('photos')
       .getPublicUrl(fileName);
 
-    // Insert record into database
+    // Insert record into database (uploader is the thief)
     const { error: insertError } = await supabase.from('photos').insert({
       url: urlData.publicUrl,
       uploader_name: data.uploaderName,
-      thief_name: data.thiefName,
+      thief_name: data.uploaderName,
       caption: data.caption || null,
       is_steal: data.isSteal,
     });
