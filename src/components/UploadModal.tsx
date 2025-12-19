@@ -133,7 +133,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
               type="url"
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-[#ffd700]"
+              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffd700]"
               placeholder="YouTube, Ring.com, or Google Drive link"
             />
             <p className="text-xs text-white/40 mt-1">
@@ -151,7 +151,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
               value={uploaderName}
               onChange={(e) => setUploaderName(e.target.value)}
               required
-              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-[#ffd700]"
+              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffd700]"
               placeholder="Who's uploading this?"
             />
           </div>
@@ -165,7 +165,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               rows={2}
-              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-[#ffd700] resize-none"
+              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffd700] resize-none"
               placeholder="Any fun details about the heist?"
             />
           </div>
