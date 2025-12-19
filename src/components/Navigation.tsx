@@ -38,6 +38,16 @@ export default function Navigation() {
             >
               Leaderboard
             </Link>
+            <Link
+              href="/rules"
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                pathname === '/rules'
+                  ? 'bg-white/10 text-white'
+                  : 'text-white/50 hover:text-white/80'
+              }`}
+            >
+              Rules
+            </Link>
           </div>
         </div>
       </div>

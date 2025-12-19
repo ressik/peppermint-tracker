@@ -119,6 +119,12 @@ export default function Home() {
           >
             Leaderboard
           </Link>
+          <Link
+            href="/rules"
+            className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
+          >
+            Rules
+          </Link>
         </div>
       </div>
 
