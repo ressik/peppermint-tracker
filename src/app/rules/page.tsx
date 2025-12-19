@@ -27,7 +27,7 @@ export default function RulesPage() {
               1
             </span>
             <div className="flex-1 pt-1">
-              <p>Keep Peppermint outside, fully visible from the street, and accessible at all times.</p>
+              <p>Keep Peppermint outside, fully visible from the street, and easily accessible at all times. If you need extra tools, it's NOT easily accessible!</p>
             </div>
           </li>
 
