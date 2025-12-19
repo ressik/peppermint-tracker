@@ -208,7 +208,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
                 Uploading...
               </span>
             ) : (
-              'Upload Photo'
+              'Upload Photo/Video URL'
             )}
           </button>
         </form>
