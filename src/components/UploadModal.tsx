@@ -112,7 +112,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
             ) : (
               <div>
                 <div className="text-4xl mb-2">📸</div>
-                <p className="text-white/60">Click to upload a photo</p>
+                <p className="text-white/40">Click to upload a photo</p>
               </div>
             )}
             <input
@@ -208,7 +208,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
                 Uploading...
               </span>
             ) : (
-              'Upload Photo/Video URL'
+              'Upload'
             )}
           </button>
         </form>
