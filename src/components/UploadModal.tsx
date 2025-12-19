@@ -10,6 +10,7 @@ interface UploadModalProps {
     uploaderName: string;
     thiefName: string;
     caption: string;
+    isSteal: boolean;
   }) => Promise<void>;
 }
 
@@ -17,6 +18,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
   const [uploaderName, setUploaderName] = useState('');
   const [thiefName, setThiefName] = useState('');
   const [caption, setCaption] = useState('');
+  const [isSteal, setIsSteal] = useState(true);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -45,11 +47,13 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
         uploaderName,
         thiefName,
         caption,
+        isSteal,
       });
       // Reset form
       setUploaderName('');
       setThiefName('');
       setCaption('');
+      setIsSteal(true);
       setFile(null);
       setPreview(null);
       onClose();
@@ -64,6 +68,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
     setUploaderName('');
     setThiefName('');
     setCaption('');
+    setIsSteal(true);
     setFile(null);
     setPreview(null);
     onClose();
@@ -162,6 +167,17 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
               placeholder="Any fun details about the heist?"
             />
           </div>
+
+          {/* Count as Steal Checkbox */}
+          <label className="flex items-center gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isSteal}
+              onChange={(e) => setIsSteal(e.target.checked)}
+              className="w-4 h-4 rounded border-white/20 bg-white/10 text-[#c41e3a] focus:ring-0 focus:ring-offset-0"
+            />
+            <span className="text-sm text-white/80">Count as a steal on the leaderboard</span>
+          </label>
 
           {/* Submit Button */}
           <button

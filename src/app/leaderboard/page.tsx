@@ -16,10 +16,11 @@ export default function LeaderboardPage() {
   const fetchLeaderboard = async () => {
     setIsLoading(true);
 
-    // Count steals per thief from the photos table
+    // Count steals per thief from the photos table (only where is_steal is true)
     const { data, error } = await supabase
       .from('photos')
-      .select('thief_name');
+      .select('thief_name')
+      .eq('is_steal', true);
 
     if (error) {
       console.error('Error fetching leaderboard:', error);

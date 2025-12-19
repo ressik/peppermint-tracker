@@ -46,6 +46,7 @@ export default function Home() {
     uploaderName: string;
     thiefName: string;
     caption: string;
+    isSteal: boolean;
   }) => {
     // Upload image to Supabase Storage
     const fileExt = data.file.name.split('.').pop();
@@ -71,6 +72,7 @@ export default function Home() {
       uploader_name: data.uploaderName,
       thief_name: data.thiefName,
       caption: data.caption || null,
+      is_steal: data.isSteal,
     });
 
     if (insertError) {
