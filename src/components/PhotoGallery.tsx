@@ -31,19 +31,13 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
             onClick={() => setSelectedPhoto(photo)}
           >
             <div className="relative aspect-square">
-              {photo.url ? (
-                <Image
-                  src={photo.url}
-                  alt={`Peppermint stolen by ${photo.thiefName}`}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div className="w-full h-full bg-white/5 flex items-center justify-center">
-                  <span className="text-6xl">🎬</span>
-                </div>
-              )}
+              <Image
+                src={photo.url || '/penguin-placeholder.jpg'}
+                alt={`Peppermint stolen by ${photo.thiefName}`}
+                fill
+                className="object-cover"
+                unoptimized
+              />
             </div>
             <div className="p-4">
               <p className="text-white/90 text-sm">
@@ -79,19 +73,13 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="relative aspect-video">
-              {selectedPhoto.url ? (
-                <Image
-                  src={selectedPhoto.url}
-                  alt={`Peppermint stolen by ${selectedPhoto.thiefName}`}
-                  fill
-                  className="object-contain bg-black"
-                  unoptimized
-                />
-              ) : (
-                <div className="w-full h-full bg-black flex items-center justify-center">
-                  <span className="text-8xl">🎬</span>
-                </div>
-              )}
+              <Image
+                src={selectedPhoto.url || '/penguin-placeholder.jpg'}
+                alt={`Peppermint stolen by ${selectedPhoto.thiefName}`}
+                fill
+                className="object-contain bg-black"
+                unoptimized
+              />
             </div>
             <div className="p-6">
               <h3 className="text-xl font-light text-white mb-2">
