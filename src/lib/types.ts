@@ -13,3 +13,11 @@ export interface LeaderboardEntry {
   name: string;
   steals: number;
 }
+
+export interface Comment {
+  id: string;
+  photoId: string;
+  name: string;
+  comment: string;
+  createdAt: string;
+}
