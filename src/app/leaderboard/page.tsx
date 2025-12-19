@@ -38,14 +38,22 @@ export default function LeaderboardPage() {
     // Convert to array and sort by count
     const sorted = Object.entries(counts)
       .map(([name, steals]) => ({ name, steals }))
-      .sort((a, b) => b.steals - a.steals)
-      .map((entry, index) => ({
-        rank: index + 1,
+      .sort((a, b) => b.steals - a.steals);
+
+    // Assign ranks with ties getting the same rank
+    let currentRank = 1;
+    const ranked = sorted.map((entry, index) => {
+      if (index > 0 && entry.steals < sorted[index - 1].steals) {
+        currentRank = index + 1;
+      }
+      return {
+        rank: currentRank,
         name: entry.name,
         steals: entry.steals,
-      }));
+      };
+    });
 
-    setEntries(sorted);
+    setEntries(ranked);
     setIsLoading(false);
   };
 
