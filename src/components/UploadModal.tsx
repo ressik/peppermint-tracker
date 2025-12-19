@@ -17,7 +17,7 @@ interface UploadModalProps {
 export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalProps) {
   const [uploaderName, setUploaderName] = useState('');
   const [caption, setCaption] = useState('');
-  const [isSteal, setIsSteal] = useState(true);
+  const [isSteal, setIsSteal] = useState(false);
   const [videoUrl, setVideoUrl] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
       // Reset form
       setUploaderName('');
       setCaption('');
-      setIsSteal(true);
+      setIsSteal(false);
       setVideoUrl('');
       setFile(null);
       setPreview(null);
@@ -67,7 +67,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
   const resetAndClose = () => {
     setUploaderName('');
     setCaption('');
-    setIsSteal(true);
+    setIsSteal(false);
     setVideoUrl('');
     setFile(null);
     setPreview(null);
