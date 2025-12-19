@@ -82,7 +82,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
       onClick={resetAndClose}
     >
       <div
-        className="card-christmas w-full max-w-md p-6"
+        className="w-full max-w-md p-6 bg-[#1a2744]/95 backdrop-blur-sm border border-white/20 rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-6">
@@ -134,7 +134,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
               className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-[#ffd700]"
-              placeholder="YouTube, TikTok, or Google Drive link"
+              placeholder="YouTube, Ring.com, or Google Drive link"
             />
             <p className="text-xs text-white/40 mt-1">
               Upload a photo, add a video link, or both!
