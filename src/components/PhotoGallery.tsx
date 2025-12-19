@@ -43,6 +43,9 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
               <p className="text-white/90 text-sm">
                 {photo.thiefName}
               </p>
+              {photo.caption && (
+                <p className="text-white/60 text-xs mt-1">{photo.caption}</p>
+              )}
             </div>
           </div>
         ))}
