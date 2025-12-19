@@ -139,7 +139,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1 text-base text-white/70 hover:text-white"
+                    className="inline-flex items-center gap-1 text-xl text-white/70 hover:text-white"
                   >
                     🎬 Watch Video
                   </a>
