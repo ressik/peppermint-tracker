@@ -6,10 +6,11 @@ interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   onUpload: (data: {
-    file: File;
+    file: File | null;
     uploaderName: string;
     caption: string;
     isSteal: boolean;
+    videoUrl: string;
   }) => Promise<void>;
 }
 
@@ -17,6 +18,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
   const [uploaderName, setUploaderName] = useState('');
   const [caption, setCaption] = useState('');
   const [isSteal, setIsSteal] = useState(true);
+  const [videoUrl, setVideoUrl] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -36,7 +38,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !uploaderName) return;
+    if ((!file && !videoUrl) || !uploaderName) return;
 
     setIsUploading(true);
     try {
@@ -45,11 +47,13 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
         uploaderName,
         caption,
         isSteal,
+        videoUrl,
       });
       // Reset form
       setUploaderName('');
       setCaption('');
       setIsSteal(true);
+      setVideoUrl('');
       setFile(null);
       setPreview(null);
       onClose();
@@ -64,6 +68,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
     setUploaderName('');
     setCaption('');
     setIsSteal(true);
+    setVideoUrl('');
     setFile(null);
     setPreview(null);
     onClose();
@@ -119,6 +124,23 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
             />
           </div>
 
+          {/* Video URL */}
+          <div>
+            <label className="block text-sm font-medium text-white/80 mb-1">
+              Video URL (optional)
+            </label>
+            <input
+              type="url"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-white/40 focus:outline-none focus:border-[#ffd700]"
+              placeholder="YouTube, TikTok, or Google Drive link"
+            />
+            <p className="text-xs text-white/40 mt-1">
+              Upload a photo, add a video link, or both!
+            </p>
+          </div>
+
           {/* Your Name */}
           <div>
             <label className="block text-sm font-medium text-white/80 mb-1">
@@ -162,7 +184,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!file || !uploaderName || isUploading}
+            disabled={(!file && !videoUrl) || !uploaderName || isUploading}
             className="w-full py-3 text-sm font-medium text-white bg-white/10 border border-white/20 rounded-lg hover:bg-white/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isUploading ? (

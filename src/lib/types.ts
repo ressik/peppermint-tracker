@@ -4,6 +4,7 @@ export interface Photo {
   uploaderName: string;
   thiefName: string;
   caption?: string;
+  videoUrl?: string;
   createdAt: string;
 }
 

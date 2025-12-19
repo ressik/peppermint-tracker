@@ -34,6 +34,7 @@ export default function Home() {
           uploaderName: photo.uploader_name,
           thiefName: photo.thief_name,
           caption: photo.caption,
+          videoUrl: photo.video_url,
           createdAt: photo.created_at,
         }))
       );
@@ -42,36 +43,44 @@ export default function Home() {
   };
 
   const handleUpload = async (data: {
-    file: File;
+    file: File | null;
     uploaderName: string;
     caption: string;
     isSteal: boolean;
+    videoUrl: string;
   }) => {
-    // Upload image to Supabase Storage
-    const fileExt = data.file.name.split('.').pop();
-    const fileName = `${Date.now()}.${fileExt}`;
+    let photoUrl = '';
 
-    const { error: uploadError } = await supabase.storage
-      .from('photos')
-      .upload(fileName, data.file);
+    // Upload image to Supabase Storage if provided
+    if (data.file) {
+      const fileExt = data.file.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
 
-    if (uploadError) {
-      console.error('Error uploading file:', uploadError);
-      throw uploadError;
+      const { error: uploadError } = await supabase.storage
+        .from('photos')
+        .upload(fileName, data.file);
+
+      if (uploadError) {
+        console.error('Error uploading file:', uploadError);
+        throw uploadError;
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('photos')
+        .getPublicUrl(fileName);
+
+      photoUrl = urlData.publicUrl;
     }
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('photos')
-      .getPublicUrl(fileName);
 
     // Insert record into database (uploader is the thief)
     const { error: insertError } = await supabase.from('photos').insert({
-      url: urlData.publicUrl,
+      url: photoUrl,
       uploader_name: data.uploaderName,
       thief_name: data.uploaderName,
       caption: data.caption || null,
       is_steal: data.isSteal,
+      video_url: data.videoUrl || null,
     });
 
     if (insertError) {
