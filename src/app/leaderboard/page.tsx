@@ -3,29 +3,50 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { LeaderboardEntry } from '@/lib/types';
-
-// Mock data - will be replaced with Supabase
-const mockLeaderboard: LeaderboardEntry[] = [
-  { rank: 1, name: 'The Johnsons', steals: 5 },
-  { rank: 2, name: 'The Smiths', steals: 4 },
-  { rank: 3, name: 'The Garcias', steals: 3 },
-  { rank: 4, name: 'The Wilsons', steals: 2 },
-  { rank: 5, name: 'The Browns', steals: 2 },
-  { rank: 6, name: 'The Patels', steals: 1 },
-  { rank: 7, name: 'The Nguyens', steals: 1 },
-];
+import { supabase } from '@/lib/supabase';
 
 export default function LeaderboardPage() {
-  const [entries, setEntries] = useState<LeaderboardEntry[]>(mockLeaderboard);
-  const [isLoading, setIsLoading] = useState(false);
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setEntries(mockLeaderboard);
-      setIsLoading(false);
-    }, 300);
+    fetchLeaderboard();
   }, []);
+
+  const fetchLeaderboard = async () => {
+    setIsLoading(true);
+
+    // Count steals per thief from the photos table
+    const { data, error } = await supabase
+      .from('photos')
+      .select('thief_name');
+
+    if (error) {
+      console.error('Error fetching leaderboard:', error);
+      setIsLoading(false);
+      return;
+    }
+
+    // Count occurrences of each thief
+    const counts: Record<string, number> = {};
+    data.forEach((photo) => {
+      const name = photo.thief_name;
+      counts[name] = (counts[name] || 0) + 1;
+    });
+
+    // Convert to array and sort by count
+    const sorted = Object.entries(counts)
+      .map(([name, steals]) => ({ name, steals }))
+      .sort((a, b) => b.steals - a.steals)
+      .map((entry, index) => ({
+        rank: index + 1,
+        name: entry.name,
+        steals: entry.steals,
+      }));
+
+    setEntries(sorted);
+    setIsLoading(false);
+  };
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

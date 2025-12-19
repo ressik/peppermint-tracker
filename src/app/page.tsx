@@ -1,49 +1,45 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PhotoGallery from '@/components/PhotoGallery';
 import UploadModal from '@/components/UploadModal';
 import { Photo } from '@/lib/types';
-
-// Mock data for development - will be replaced with Supabase
-const mockPhotos: Photo[] = [
-  {
-    id: '1',
-    url: 'https://images.unsplash.com/photo-1598439210625-5067c578f3f6?w=400&h=400&fit=crop',
-    uploaderName: 'Santa',
-    thiefName: 'The Johnsons',
-    caption: 'Found Peppermint enjoying the snow!',
-    createdAt: '2024-12-15T10:00:00Z',
-  },
-  {
-    id: '2',
-    url: 'https://images.unsplash.com/photo-1551986782-d0169b3f8fa7?w=400&h=400&fit=crop',
-    uploaderName: 'Rudolph',
-    thiefName: 'The Smiths',
-    caption: 'Peppermint was caught waddling around!',
-    createdAt: '2024-12-16T14:30:00Z',
-  },
-  {
-    id: '3',
-    url: 'https://images.unsplash.com/photo-1462888210965-cdf193fb74de?w=400&h=400&fit=crop',
-    uploaderName: 'Frosty',
-    thiefName: 'The Garcias',
-    createdAt: '2024-12-17T09:15:00Z',
-  },
-  {
-    id: '4',
-    url: 'https://images.unsplash.com/photo-1517783999520-f068d7431571?w=400&h=400&fit=crop',
-    uploaderName: 'Snowflake',
-    thiefName: 'The Wilsons',
-    caption: 'Peppermint looking festive!',
-    createdAt: '2024-12-18T08:00:00Z',
-  },
-];
+import { supabase } from '@/lib/supabase';
 
 export default function Home() {
-  const [photos, setPhotos] = useState<Photo[]>(mockPhotos);
+  const [photos, setPhotos] = useState<Photo[]>([]);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch photos from Supabase
+  useEffect(() => {
+    fetchPhotos();
+  }, []);
+
+  const fetchPhotos = async () => {
+    setIsLoading(true);
+    const { data, error } = await supabase
+      .from('photos')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching photos:', error);
+    } else {
+      setPhotos(
+        data.map((photo) => ({
+          id: photo.id,
+          url: photo.url,
+          uploaderName: photo.uploader_name,
+          thiefName: photo.thief_name,
+          caption: photo.caption,
+          createdAt: photo.created_at,
+        }))
+      );
+    }
+    setIsLoading(false);
+  };
 
   const handleUpload = async (data: {
     file: File;
@@ -51,20 +47,39 @@ export default function Home() {
     thiefName: string;
     caption: string;
   }) => {
-    // For now, create a local URL for the uploaded image
-    // This will be replaced with Supabase storage upload
-    const url = URL.createObjectURL(data.file);
+    // Upload image to Supabase Storage
+    const fileExt = data.file.name.split('.').pop();
+    const fileName = `${Date.now()}.${fileExt}`;
 
-    const newPhoto: Photo = {
-      id: Date.now().toString(),
-      url,
-      uploaderName: data.uploaderName,
-      thiefName: data.thiefName,
-      caption: data.caption || undefined,
-      createdAt: new Date().toISOString(),
-    };
+    const { error: uploadError } = await supabase.storage
+      .from('photos')
+      .upload(fileName, data.file);
 
-    setPhotos([newPhoto, ...photos]);
+    if (uploadError) {
+      console.error('Error uploading file:', uploadError);
+      throw uploadError;
+    }
+
+    // Get public URL
+    const { data: urlData } = supabase.storage
+      .from('photos')
+      .getPublicUrl(fileName);
+
+    // Insert record into database
+    const { error: insertError } = await supabase.from('photos').insert({
+      url: urlData.publicUrl,
+      uploader_name: data.uploaderName,
+      thief_name: data.thiefName,
+      caption: data.caption || null,
+    });
+
+    if (insertError) {
+      console.error('Error inserting photo:', insertError);
+      throw insertError;
+    }
+
+    // Refresh photos
+    fetchPhotos();
   };
 
   return (
@@ -99,7 +114,13 @@ export default function Home() {
 
       {/* Gallery Section */}
       <div className="mb-8">
-        <PhotoGallery photos={photos} />
+        {isLoading ? (
+          <div className="text-center py-20">
+            <p className="text-white/40 text-sm">Loading...</p>
+          </div>
+        ) : (
+          <PhotoGallery photos={photos} />
+        )}
       </div>
 
       {/* Upload Modal */}
