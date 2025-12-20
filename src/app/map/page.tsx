@@ -93,6 +93,58 @@ export default function MapPage() {
         </p>
       </div>
 
+      {/* Journey Timeline */}
+      {locatedPhotos.length > 0 && (
+        <div className="mb-8 card-christmas p-6">
+          <h2 className="text-xl font-light text-white mb-4 text-center">Journey Timeline</h2>
+          <div className="max-h-96 overflow-y-auto">
+            <div className="space-y-3">
+              {(() => {
+                const steals = photos.filter((p) => p.isSteal && p.latitude && p.longitude);
+                const currentLocation = steals.length > 0
+                  ? steals.reduce((latest, photo) =>
+                      new Date(photo.createdAt) > new Date(latest.createdAt) ? photo : latest
+                    )
+                  : null;
+
+                return photos
+                  .filter((p) => p.latitude && p.longitude)
+                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                  .map((photo, index, arr) => {
+                    const isCurrent = currentLocation?.id === photo.id;
+                    return (
+                      <div
+                        key={photo.id}
+                        className={`flex items-start gap-4 p-3 rounded-lg transition-all ${
+                          isCurrent
+                            ? 'bg-white/10 border-2 border-[#ffd700]'
+                            : 'bg-white/5 hover:bg-white/10'
+                        }`}
+                      >
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#c41e3a] flex items-center justify-center text-white text-xs font-medium">
+                      {arr.length - index}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white/90 text-sm font-medium">{photo.uploaderName}</p>
+                      {photo.address && (
+                        <p className="text-white/60 text-xs mt-1">{photo.address}</p>
+                      )}
+                      {photo.caption && (
+                        <p className="text-white/70 text-xs mt-1 italic">{photo.caption}</p>
+                      )}
+                      <p className="text-white/40 text-xs mt-1">
+                        {new Date(photo.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                    );
+                  });
+              })()}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Map */}
       <div className="card-christmas p-6">
         {isLoading ? (
@@ -109,42 +161,6 @@ export default function MapPage() {
         <p className="mb-2">🗺️ Click markers to see details about each stop</p>
         <p>The red dashed line shows Peppermint&apos;s journey in chronological order</p>
       </div>
-
-      {/* Journey Timeline */}
-      {locatedPhotos.length > 0 && (
-        <div className="mt-8 card-christmas p-6">
-          <h2 className="text-xl font-light text-white mb-4 text-center">Journey Timeline</h2>
-          <div className="max-h-96 overflow-y-auto">
-            <div className="space-y-3">
-              {photos
-                .filter((p) => p.latitude && p.longitude)
-                .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-                .map((photo, index) => (
-                  <div
-                    key={photo.id}
-                    className="flex items-start gap-4 p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-all"
-                  >
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[#c41e3a] flex items-center justify-center text-white text-xs font-medium">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white/90 text-sm font-medium">{photo.uploaderName}</p>
-                      {photo.address && (
-                        <p className="text-white/60 text-xs mt-1">{photo.address}</p>
-                      )}
-                      {photo.caption && (
-                        <p className="text-white/70 text-xs mt-1 italic">{photo.caption}</p>
-                      )}
-                      <p className="text-white/40 text-xs mt-1">
-                        {new Date(photo.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
