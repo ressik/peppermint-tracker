@@ -165,6 +165,30 @@ export default function ChatPage() {
     setInputName('');
   };
 
+  const renderMessageWithLinks = (text: string) => {
+    // URL regex pattern that matches http(s) URLs
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      // Check if this part is a URL
+      if (part.match(urlRegex)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-white/80 transition-colors"
+          >
+            {part}
+          </a>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
+
   // Name prompt screen
   if (!hasEnteredName) {
     return (
@@ -280,7 +304,7 @@ export default function ChatPage() {
                   {msg.name !== userName && (
                     <p className="text-xs font-medium mb-1 opacity-80">{msg.name}</p>
                   )}
-                  <p className="text-sm break-words">{msg.message}</p>
+                  <p className="text-sm break-words">{renderMessageWithLinks(msg.message)}</p>
                   <p className="text-xs opacity-60 mt-1">
                     {new Date(msg.createdAt).toLocaleTimeString([], {
                       hour: '2-digit',
