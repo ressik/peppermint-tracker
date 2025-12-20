@@ -124,7 +124,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                 className="object-cover"
                 unoptimized
               />
-              {!photo.url && photo.videoUrl && (
+              {photo.videoUrl && (
                 <a
                   href={photo.videoUrl}
                   target="_blank"
@@ -153,17 +153,6 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                 <p className="text-white/60 text-xs mt-1">{photo.caption}</p>
               )}
               <div className="flex items-center gap-3 mt-2">
-                {photo.videoUrl && (
-                  <a
-                    href={photo.videoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                    className="inline-flex items-center gap-1 text-xl text-white/70 hover:text-white"
-                  >
-                    🎬 Watch Video
-                  </a>
-                )}
                 <span className="inline-flex items-center gap-1 text-white/50 text-xs">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -203,7 +192,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                 className="object-contain bg-black"
                 unoptimized
               />
-              {!selectedPhoto.url && selectedPhoto.videoUrl && (
+              {selectedPhoto.videoUrl && (
                 <a
                   href={selectedPhoto.videoUrl}
                   target="_blank"
@@ -229,16 +218,6 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
               </h3>
               {selectedPhoto.caption && (
                 <p className="text-white/80 text-sm mb-2">{selectedPhoto.caption}</p>
-              )}
-              {selectedPhoto.videoUrl && (
-                <a
-                  href={selectedPhoto.videoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-lg text-white/70 hover:text-white mb-2"
-                >
-                  🎬 Watch Video
-                </a>
               )}
               <p className="text-xs text-white/60 mt-4">
                 {new Date(selectedPhoto.createdAt).toLocaleDateString()}
