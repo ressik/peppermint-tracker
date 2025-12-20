@@ -144,7 +144,7 @@ export default function Home() {
       {/* Hero Section */}
       <div className="text-center mb-16">
         <p className="text-white/60 text-xs uppercase tracking-[0.3em] mb-4">
-          ✦ A Neighborhood Christmas Tradition ✦
+          ✦ A Bloomfield Heights Holiday Heist ✦
         </p>
         <h1 className="text-5xl sm:text-7xl font-light mb-6">
           <span className="text-white">Peppermint</span>{" "}
