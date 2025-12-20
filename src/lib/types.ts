@@ -17,6 +17,12 @@ export interface LeaderboardEntry {
   steals: number;
 }
 
+export interface TimeHeldEntry {
+  name: string;
+  totalSeconds: number;
+  formattedTime: string;
+}
+
 export interface Comment {
   id: string;
   photoId: string;
