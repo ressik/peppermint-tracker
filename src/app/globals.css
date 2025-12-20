@@ -137,3 +137,13 @@ body {
   color: #cd7f32;
   text-shadow: 0 0 10px rgba(205, 127, 50, 0.5);
 }
+
+/* Red marker for non-current locations */
+.red-marker {
+  filter: hue-rotate(-222deg) saturate(2.5) brightness(1.1)
+}
+
+/* Green marker for current location */
+.green-marker {
+  filter: hue-rotate(251deg) saturate(5) brightness(.8)
+}

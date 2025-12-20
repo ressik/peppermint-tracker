@@ -6,8 +6,8 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Photo } from '@/lib/types';
 
-// Fix for default marker icons in react-leaflet
-const icon = L.icon({
+// Red marker for non-current locations
+const redIcon = L.icon({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
@@ -15,6 +15,19 @@ const icon = L.icon({
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
   shadowSize: [41, 41],
+  className: 'red-marker',
+});
+
+// Green pin for current location
+const greenIcon = L.icon({
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+  className: 'green-marker',
 });
 
 interface JourneyMapProps {
@@ -25,10 +38,18 @@ export default function JourneyMap({ photos }: JourneyMapProps) {
   const [mounted, setMounted] = useState(false);
   const [visibleMarkersCount, setVisibleMarkersCount] = useState(0);
   const [animatedPathLength, setAnimatedPathLength] = useState(0);
+  const [animationKey, setAnimationKey] = useState(0);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Function to replay the animation
+  const replayAnimation = () => {
+    setVisibleMarkersCount(0);
+    setAnimatedPathLength(0);
+    setAnimationKey((prev) => prev + 1);
+  };
 
   // Filter photos that have coordinates
   const locatedPhotos = photos.filter(
@@ -68,7 +89,7 @@ export default function JourneyMap({ photos }: JourneyMapProps) {
     }, 400); // Add a new marker every 400ms
 
     return () => clearInterval(markerInterval);
-  }, [mounted, sortedPhotos.length]);
+  }, [mounted, sortedPhotos.length, animationKey]);
 
   // Animate path drawing progressively
   useEffect(() => {
@@ -88,7 +109,7 @@ export default function JourneyMap({ photos }: JourneyMapProps) {
     }, animationDuration);
 
     return () => clearInterval(pathInterval);
-  }, [mounted, sortedPhotos.length]);
+  }, [mounted, sortedPhotos.length, animationKey]);
 
   // Group photos by location (same lat/lng)
   const locationGroups = new Map<string, { photos: Photo[]; stopNumbers: number[] }>();
@@ -110,6 +131,14 @@ export default function JourneyMap({ photos }: JourneyMapProps) {
 
   // Create unique locations for markers
   const uniqueLocations = Array.from(locationGroups.values());
+
+  // Find current location (most recent steal with coordinates)
+  const steals = photos.filter((p) => p.isSteal && p.latitude && p.longitude);
+  const currentLocation = steals.length > 0
+    ? steals.reduce((latest, photo) =>
+        new Date(photo.createdAt) > new Date(latest.createdAt) ? photo : latest
+      )
+    : null;
 
   // Create path coordinates for the journey line (animated)
   const animatedPathCoordinates: [number, number][] = sortedPhotos
@@ -141,7 +170,18 @@ export default function JourneyMap({ photos }: JourneyMapProps) {
   }
 
   return (
-    <div className="w-full h-[600px] rounded-lg overflow-hidden">
+    <div className="w-full h-[600px] rounded-lg overflow-hidden relative">
+      {/* Replay Button */}
+      <button
+        onClick={replayAnimation}
+        className="absolute top-4 right-4 z-[1000] px-4 py-2 bg-[#c41e3a] text-white text-sm font-medium rounded-lg shadow-lg hover:bg-[#a01830] transition-all flex items-center gap-2"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+          <path fillRule="evenodd" d="M4.755 10.059a7.5 7.5 0 0112.548-3.364l1.903 1.903h-3.183a.75.75 0 100 1.5h4.992a.75.75 0 00.75-.75V4.356a.75.75 0 00-1.5 0v3.18l-1.9-1.9A9 9 0 003.306 9.67a.75.75 0 101.45.388zm15.408 3.352a.75.75 0 00-.919.53 7.5 7.5 0 01-12.548 3.364l-1.902-1.903h3.183a.75.75 0 000-1.5H2.984a.75.75 0 00-.75.75v4.992a.75.75 0 001.5 0v-3.18l1.9 1.9a9 9 0 0015.059-4.035.75.75 0 00-.53-.918z" clipRule="evenodd" />
+        </svg>
+        Replay Animation
+      </button>
+
       <MapContainer
         center={[centerLat, centerLng]}
         zoom={17}
@@ -153,17 +193,27 @@ export default function JourneyMap({ photos }: JourneyMapProps) {
         />
 
         {/* Draw the animated journey path */}
-        {animatedPathCoordinates.length > 1 && (
-          <Polyline
-            positions={animatedPathCoordinates}
-            pathOptions={{
-              color: '#c41e3a',
-              weight: 3,
-              opacity: 0.7,
-              dashArray: '10, 10',
-            }}
-          />
-        )}
+        {animatedPathCoordinates.length > 1 &&
+          animatedPathCoordinates.slice(0, -1).map((coord, index) => {
+            const nextCoord = animatedPathCoordinates[index + 1];
+            const totalSegments = animatedPathCoordinates.length - 1;
+            // All paths at 30% opacity except the final path to current location at 100%
+            const isFinalPath = index === totalSegments - 1;
+            const opacity = isFinalPath ? 1.0 : 0.3;
+
+            return (
+              <Polyline
+                key={`path-${index}`}
+                positions={[coord, nextCoord]}
+                pathOptions={{
+                  color: '#c41e3a',
+                  weight: 3,
+                  opacity: opacity,
+                }}
+              />
+            );
+          })
+        }
 
         {/* Add markers for each unique location (appearing progressively) */}
         {uniqueLocations.map((location, locationIndex) => {
@@ -172,11 +222,16 @@ export default function JourneyMap({ photos }: JourneyMapProps) {
 
           if (!shouldShow) return null;
 
+          // Check if this location is the current location
+          const isCurrentLocation = currentLocation &&
+            firstPhoto.latitude === currentLocation.latitude &&
+            firstPhoto.longitude === currentLocation.longitude;
+
           return (
             <Marker
               key={`${firstPhoto.latitude}-${firstPhoto.longitude}`}
               position={[firstPhoto.latitude!, firstPhoto.longitude!]}
-              icon={icon}
+              icon={isCurrentLocation ? redIcon : greenIcon}
             >
               <Popup>
                 <div className="text-sm">
