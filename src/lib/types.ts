@@ -5,6 +5,9 @@ export interface Photo {
   caption?: string;
   videoUrl?: string;
   createdAt: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface LeaderboardEntry {

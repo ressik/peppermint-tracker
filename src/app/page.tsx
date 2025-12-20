@@ -35,6 +35,9 @@ export default function Home() {
           caption: photo.caption,
           videoUrl: photo.video_url,
           createdAt: photo.created_at,
+          address: photo.address,
+          latitude: photo.latitude,
+          longitude: photo.longitude,
         }))
       );
     }
@@ -111,6 +114,12 @@ export default function Home() {
           >
             <span className="text-base">+</span> Add your Photo
           </button>
+          <Link
+            href="/map"
+            className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
+          >
+            Map
+          </Link>
           <Link
             href="/leaderboard"
             className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
