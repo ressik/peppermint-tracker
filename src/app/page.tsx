@@ -150,7 +150,7 @@ export default function Home() {
           <span className="text-white">Peppermint</span>{" "}
           <span className="text-[#c41e3a]">the Penguin</span>
         </h1>
-        <p className="text-base text-white/70 max-w-md mx-auto mb-8">
+        <p className="text-sm italic text-white/70 max-w-md mx-auto mb-8">
           Track the adventures of our wandering inflatable friend
         </p>
         <div className="flex flex-col items-center justify-center gap-3">

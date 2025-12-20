@@ -126,9 +126,6 @@ export default function MapPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-white/90 text-sm font-medium">{photo.uploaderName}</p>
-                      {photo.address && (
-                        <p className="text-white/60 text-xs mt-1">{photo.address}</p>
-                      )}
                       {photo.caption && (
                         <p className="text-white/70 text-xs mt-1 italic">{photo.caption}</p>
                       )}
