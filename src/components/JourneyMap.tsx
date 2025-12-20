@@ -36,8 +36,7 @@ interface JourneyMapProps {
 
 export default function JourneyMap({ photos }: JourneyMapProps) {
   const [mounted, setMounted] = useState(false);
-  const [visibleMarkersCount, setVisibleMarkersCount] = useState(0);
-  const [animatedPathLength, setAnimatedPathLength] = useState(0);
+  const [animationProgress, setAnimationProgress] = useState(0);
   const [animationKey, setAnimationKey] = useState(0);
 
   useEffect(() => {
@@ -46,8 +45,7 @@ export default function JourneyMap({ photos }: JourneyMapProps) {
 
   // Function to replay the animation
   const replayAnimation = () => {
-    setVisibleMarkersCount(0);
-    setAnimatedPathLength(0);
+    setAnimationProgress(0);
     setAnimationKey((prev) => prev + 1);
   };
 
@@ -61,54 +59,30 @@ export default function JourneyMap({ photos }: JourneyMapProps) {
     (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
   );
 
-  // Group photos by location first (to know how many unique locations we have)
-  const locationGroupsForAnimation = new Map<string, Photo[]>();
-  sortedPhotos.forEach((photo) => {
-    const key = `${photo.latitude},${photo.longitude}`;
-    const existing = locationGroupsForAnimation.get(key);
-    if (existing) {
-      existing.push(photo);
-    } else {
-      locationGroupsForAnimation.set(key, [photo]);
-    }
-  });
-  const uniqueLocationCount = locationGroupsForAnimation.size;
-
-  // Animate markers appearing one by one
+  // Smooth animation effect
   useEffect(() => {
     if (!mounted || sortedPhotos.length === 0) return;
 
-    const markerInterval = setInterval(() => {
-      setVisibleMarkersCount((prev) => {
-        if (prev >= sortedPhotos.length) {
-          clearInterval(markerInterval);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 400); // Add a new marker every 400ms
+    const totalLocations = sortedPhotos.length;
+    const animationDuration = 1000; // Total animation time in ms per location
+    const fps = 60;
+    const frameInterval = 1000 / fps;
+    const totalFrames = (animationDuration / frameInterval) * totalLocations;
+    let frame = 0;
 
-    return () => clearInterval(markerInterval);
-  }, [mounted, sortedPhotos.length, animationKey]);
+    const animationInterval = setInterval(() => {
+      frame++;
+      const progress = (frame / totalFrames) * totalLocations;
 
-  // Animate path drawing progressively
-  useEffect(() => {
-    if (!mounted || sortedPhotos.length === 0) return;
+      if (progress >= totalLocations) {
+        setAnimationProgress(totalLocations);
+        clearInterval(animationInterval);
+      } else {
+        setAnimationProgress(progress);
+      }
+    }, frameInterval);
 
-    const totalSegments = sortedPhotos.length - 1;
-    const animationDuration = 400; // ms per segment
-
-    const pathInterval = setInterval(() => {
-      setAnimatedPathLength((prev) => {
-        if (prev >= totalSegments) {
-          clearInterval(pathInterval);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, animationDuration);
-
-    return () => clearInterval(pathInterval);
+    return () => clearInterval(animationInterval);
   }, [mounted, sortedPhotos.length, animationKey]);
 
   // Group photos by location (same lat/lng)
@@ -140,10 +114,30 @@ export default function JourneyMap({ photos }: JourneyMapProps) {
       )
     : null;
 
-  // Create path coordinates for the journey line (animated)
-  const animatedPathCoordinates: [number, number][] = sortedPhotos
-    .slice(0, Math.min(animatedPathLength + 1, sortedPhotos.length))
-    .map((photo) => [photo.latitude!, photo.longitude!]);
+  // Calculate visible markers based on animation progress
+  const visibleMarkersCount = Math.floor(animationProgress);
+
+  // Create animated path with smooth interpolation
+  const animatedPathCoordinates: [number, number][] = [];
+
+  if (sortedPhotos.length > 0) {
+    const currentSegment = Math.floor(animationProgress);
+    const segmentProgress = animationProgress - currentSegment;
+
+    // Add all completed segments
+    for (let i = 0; i <= Math.min(currentSegment, sortedPhotos.length - 1); i++) {
+      animatedPathCoordinates.push([sortedPhotos[i].latitude!, sortedPhotos[i].longitude!]);
+    }
+
+    // Add interpolated point for current segment
+    if (currentSegment < sortedPhotos.length - 1 && segmentProgress > 0) {
+      const start = sortedPhotos[currentSegment];
+      const end = sortedPhotos[currentSegment + 1];
+      const interpolatedLat = start.latitude! + (end.latitude! - start.latitude!) * segmentProgress;
+      const interpolatedLng = start.longitude! + (end.longitude! - start.longitude!) * segmentProgress;
+      animatedPathCoordinates.push([interpolatedLat, interpolatedLng]);
+    }
+  }
 
   // Calculate center of map based on all coordinates
   const centerLat =
@@ -192,19 +186,30 @@ export default function JourneyMap({ photos }: JourneyMapProps) {
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
 
-        {/* Draw the animated journey path */}
-        {animatedPathCoordinates.length > 1 &&
-          animatedPathCoordinates.slice(0, -1).map((coord, index) => {
-            const nextCoord = animatedPathCoordinates[index + 1];
-            const totalSegments = animatedPathCoordinates.length - 1;
-            // All paths at 30% opacity except the final path to current location at 100%
-            const isFinalPath = index === totalSegments - 1;
-            const opacity = isFinalPath ? 1.0 : 0.3;
+        {/* Draw completed paths at reduced opacity */}
+        {sortedPhotos.length > 1 &&
+          sortedPhotos.slice(0, -1).map((photo, index) => {
+            const nextPhoto = sortedPhotos[index + 1];
+            const segmentIndex = index;
+
+            // Only draw fully completed segments (not the one currently being animated)
+            if (segmentIndex >= Math.floor(animationProgress)) return null;
+
+            // Check if this is the final path to current location
+            const isToCurrentLocation = currentLocation &&
+              nextPhoto.latitude === currentLocation.latitude &&
+              nextPhoto.longitude === currentLocation.longitude &&
+              index === sortedPhotos.length - 2;
+
+            const opacity = isToCurrentLocation ? 1.0 : 0.3;
 
             return (
               <Polyline
                 key={`path-${index}`}
-                positions={[coord, nextCoord]}
+                positions={[
+                  [photo.latitude!, photo.longitude!],
+                  [nextPhoto.latitude!, nextPhoto.longitude!],
+                ]}
                 pathOptions={{
                   color: '#c41e3a',
                   weight: 3,
@@ -215,10 +220,40 @@ export default function JourneyMap({ photos }: JourneyMapProps) {
           })
         }
 
+        {/* Draw the currently animating segment with interpolation */}
+        {animatedPathCoordinates.length > 1 && (
+          <>
+            <Polyline
+              positions={[
+                animatedPathCoordinates[animatedPathCoordinates.length - 2],
+                animatedPathCoordinates[animatedPathCoordinates.length - 1],
+              ]}
+              pathOptions={{
+                color: '#c41e3a',
+                weight: 3,
+                opacity: 1.0,
+              }}
+            />
+            {/* Animated marker at current position (only show while animating) */}
+            {animationProgress < sortedPhotos.length && (
+              <Marker
+                position={animatedPathCoordinates[animatedPathCoordinates.length - 1]}
+                icon={L.divIcon({
+                  className: 'animated-position-marker',
+                  html: '<div style="width: 12px; height: 12px; background-color: #c41e3a; border: 2px solid white; border-radius: 50%; box-shadow: 0 0 10px rgba(196, 30, 58, 0.8);"></div>',
+                  iconSize: [12, 12],
+                  iconAnchor: [6, 6],
+                })}
+              />
+            )}
+          </>
+        )}
+
         {/* Add markers for each unique location (appearing progressively) */}
         {uniqueLocations.map((location, locationIndex) => {
           const firstPhoto = location.photos[0];
-          const shouldShow = location.stopNumbers[0] <= visibleMarkersCount;
+          // Show marker only if animation has reached this stop number
+          const shouldShow = location.stopNumbers[0] <= visibleMarkersCount + 1;
 
           if (!shouldShow) return null;
 
