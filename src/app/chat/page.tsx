@@ -18,6 +18,7 @@ export default function ChatPage() {
   const [inputName, setInputName] = useState('');
   const [messageText, setMessageText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Check for saved name in localStorage
@@ -31,13 +32,29 @@ export default function ChatPage() {
     }
   }, []);
 
+  // Request notification permission when entering chat
+  useEffect(() => {
+    if (hasEnteredName && typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted') {
+        setNotificationsEnabled(true);
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then((permission) => {
+          if (permission === 'granted') {
+            setNotificationsEnabled(true);
+          }
+        });
+      }
+    }
+  }, [hasEnteredName]);
+
   // Fetch initial messages
   useEffect(() => {
     if (hasEnteredName) {
       fetchMessages();
-      subscribeToMessages();
+      const unsubscribe = subscribeToMessages();
+      return unsubscribe;
     }
-  }, [hasEnteredName]);
+  }, [hasEnteredName, notificationsEnabled, userName]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -89,6 +106,21 @@ export default function ChatPage() {
             createdAt: payload.new.created_at,
           };
           setMessages((prev) => [...prev, newMessage]);
+
+          // Show notification for messages from others
+          if (
+            notificationsEnabled &&
+            newMessage.name !== userName &&
+            typeof window !== 'undefined' &&
+            'Notification' in window &&
+            Notification.permission === 'granted'
+          ) {
+            new Notification(`New message from ${newMessage.name}`, {
+              body: newMessage.message,
+              icon: '/favicon.ico',
+              tag: 'peppermint-chat',
+            });
+          }
         }
       )
       .subscribe();
