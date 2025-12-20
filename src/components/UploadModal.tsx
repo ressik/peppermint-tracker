@@ -144,7 +144,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
           {/* Your Name */}
           <div>
             <label className="block text-sm font-medium text-white/80 mb-1">
-              Your Name *
+              Family Last Name *
             </label>
             <input
               type="text"
@@ -152,7 +152,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
               onChange={(e) => setUploaderName(e.target.value)}
               required
               className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffd700]"
-              placeholder="Who's uploading this?"
+              placeholder="Family last name"
             />
           </div>
 

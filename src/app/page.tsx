@@ -32,7 +32,6 @@ export default function Home() {
           id: photo.id,
           url: photo.url,
           uploaderName: photo.uploader_name,
-          thiefName: photo.thief_name,
           caption: photo.caption,
           videoUrl: photo.video_url,
           createdAt: photo.created_at,
@@ -73,11 +72,10 @@ export default function Home() {
       photoUrl = urlData.publicUrl;
     }
 
-    // Insert record into database (uploader is the thief)
+    // Insert record into database
     const { error: insertError } = await supabase.from('photos').insert({
       url: photoUrl,
       uploader_name: data.uploaderName,
-      thief_name: data.uploaderName,
       caption: data.caption || null,
       is_steal: data.isSteal,
       video_url: data.videoUrl || null,

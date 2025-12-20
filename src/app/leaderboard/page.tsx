@@ -16,10 +16,10 @@ export default function LeaderboardPage() {
   const fetchLeaderboard = async () => {
     setIsLoading(true);
 
-    // Count steals per thief from the photos table (only where is_steal is true)
+    // Count steals per uploader from the photos table (only where is_steal is true)
     const { data, error } = await supabase
       .from('photos')
-      .select('thief_name')
+      .select('uploader_name')
       .eq('is_steal', true);
 
     if (error) {
@@ -28,17 +28,22 @@ export default function LeaderboardPage() {
       return;
     }
 
-    // Count occurrences of each thief
+    // Count occurrences of each uploader
     const counts: Record<string, number> = {};
     data.forEach((photo) => {
-      const name = photo.thief_name;
+      const name = photo.uploader_name;
       counts[name] = (counts[name] || 0) + 1;
     });
 
-    // Convert to array and sort by count
+    // Convert to array and sort by count, then alphabetically for ties
     const sorted = Object.entries(counts)
       .map(([name, steals]) => ({ name, steals }))
-      .sort((a, b) => b.steals - a.steals);
+      .sort((a, b) => {
+        if (b.steals !== a.steals) {
+          return b.steals - a.steals;
+        }
+        return a.name.localeCompare(b.name);
+      });
 
     // Assign ranks with ties getting the same rank
     let currentRank = 1;

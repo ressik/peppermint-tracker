@@ -119,15 +119,35 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
             <div className="relative aspect-square">
               <Image
                 src={photo.url || '/penguin-placeholder.jpg'}
-                alt={`Peppermint stolen by ${photo.thiefName}`}
+                alt={`Peppermint stolen by ${photo.uploaderName}`}
                 fill
                 className="object-cover"
                 unoptimized
               />
+              {!photo.url && photo.videoUrl && (
+                <a
+                  href={photo.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors group"
+                >
+                  <div className="w-20 h-20 rounded-full bg-red-600 flex items-center justify-center group-hover:bg-red-700 transition-colors">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="white"
+                      className="w-10 h-10 ml-1"
+                    >
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </a>
+              )}
             </div>
             <div className="p-4">
               <p className="text-white/90 text-sm">
-                {photo.thiefName}
+                {photo.uploaderName}
               </p>
               {photo.caption && (
                 <p className="text-white/60 text-xs mt-1">{photo.caption}</p>
@@ -178,15 +198,34 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
             <div className="relative aspect-video">
               <Image
                 src={selectedPhoto.url || '/penguin-placeholder.jpg'}
-                alt={`Peppermint stolen by ${selectedPhoto.thiefName}`}
+                alt={`Peppermint stolen by ${selectedPhoto.uploaderName}`}
                 fill
                 className="object-contain bg-black"
                 unoptimized
               />
+              {!selectedPhoto.url && selectedPhoto.videoUrl && (
+                <a
+                  href={selectedPhoto.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute inset-0 flex items-center justify-center bg-black/30 hover:bg-black/40 transition-colors group"
+                >
+                  <div className="w-24 h-24 rounded-full bg-red-600 flex items-center justify-center group-hover:bg-red-700 transition-colors">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="white"
+                      className="w-12 h-12 ml-1"
+                    >
+                      <path d="M8 5v14l11-7z" />
+                    </svg>
+                  </div>
+                </a>
+              )}
             </div>
             <div className="p-6 max-h-[50vh] overflow-y-auto">
               <h3 className="text-xl font-light text-white mb-2">
-                {selectedPhoto.thiefName}
+                {selectedPhoto.uploaderName}
               </h3>
               {selectedPhoto.caption && (
                 <p className="text-white/80 text-sm mb-2">{selectedPhoto.caption}</p>
