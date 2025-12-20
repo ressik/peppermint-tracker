@@ -45,7 +45,7 @@ export default function RulesPage() {
               3
             </span>
             <div className="flex-1 pt-1">
-              <p className="mb-3">If you&apos;re caught stealing peppermint, return him to his prior spot and wait 12 hours before another attempt.</p>
+              <p className="mb-3">If you&apos;re caught stealing peppermint, return him to his prior spot and wait 12 hours - or until someone else successfully steals, whichever comes first - before another attempt.</p>
               <ul className="space-y-2 ml-4 text-sm text-white/60">
                 <li className="flex gap-2">
                   <span className="text-white/40">•</span>
