@@ -32,6 +32,16 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
     }
   }, [selectedPhoto]);
 
+  // Load saved commenter name from localStorage when a photo is selected
+  useEffect(() => {
+    if (selectedPhoto && typeof window !== 'undefined') {
+      const savedName = localStorage.getItem('peppermint-commenter-name');
+      if (savedName) {
+        setCommentName(savedName);
+      }
+    }
+  }, [selectedPhoto]);
+
   const fetchCommentCounts = async () => {
     if (photos.length === 0) return;
 
@@ -89,6 +99,11 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
     if (error) {
       console.error('Error submitting comment:', error);
     } else {
+      // Save commenter name to localStorage for next time
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('peppermint-commenter-name', commentName.trim());
+      }
+
       setCommentName('');
       setCommentText('');
       fetchComments(selectedPhoto.id);

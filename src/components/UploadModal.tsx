@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -25,6 +25,16 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
   const [isUploading, setIsUploading] = useState(false);
   const [address, setAddress] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load saved family name from localStorage when modal opens
+  useEffect(() => {
+    if (isOpen && typeof window !== 'undefined') {
+      const savedName = localStorage.getItem('peppermint-family-name');
+      if (savedName) {
+        setUploaderName(savedName);
+      }
+    }
+  }, [isOpen]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -56,7 +66,13 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
         videoUrl,
         address: isSteal ? address : '',
       });
-      // Reset form
+
+      // Save family name to localStorage for next time
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('peppermint-family-name', uploaderName);
+      }
+
+      // Reset form (but keep the name saved in localStorage)
       setUploaderName('');
       setCaption('');
       setIsSteal(false);
