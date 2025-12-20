@@ -35,7 +35,12 @@ export default function RootLayout({
 
         {/* Footer */}
         <footer className="relative z-10 text-center py-8 text-white/50 text-xs">
-          <p>Peppermint Tracker</p>
+          <p className="mb-3">Peppermint Tracker</p>
+          <img
+            src="https://hitwebcounter.com/counter/counter.php?page=17058392&style=0007&nbdigits=6&type=page&initCount=0"
+            alt="Visitor Counter"
+            className="inline-block scale-[2]"
+          />
         </footer>
       </body>
     </html>
