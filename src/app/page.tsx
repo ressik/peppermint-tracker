@@ -153,31 +153,33 @@ export default function Home() {
         <p className="text-base text-white/70 max-w-md mx-auto mb-8">
           Track the adventures of our wandering inflatable friend
         </p>
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex flex-col items-center justify-center gap-3">
           <button
             onClick={() => setIsUploadOpen(true)}
             className="inline-flex items-center gap-2 px-5 py-2 text-sm font-medium text-white/90 border border-white/20 rounded-full hover:bg-white/10 hover:border-white/30 transition-all"
           >
             <span className="text-base">+</span> Add your Photo
           </button>
-          <Link
-            href="/map"
-            className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
-          >
-            Timeline
-          </Link>
-          <Link
-            href="/leaderboard"
-            className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
-          >
-            Leaderboard
-          </Link>
-          <Link
-            href="/rules"
-            className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
-          >
-            Rules
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/map"
+              className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
+            >
+              Timeline
+            </Link>
+            <Link
+              href="/leaderboard"
+              className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
+            >
+              Leaderboard
+            </Link>
+            <Link
+              href="/rules"
+              className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
+            >
+              Rules
+            </Link>
+          </div>
         </div>
       </div>
 
