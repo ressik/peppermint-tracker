@@ -50,6 +50,7 @@ export default function Home() {
     caption: string;
     isSteal: boolean;
     videoUrl: string;
+    address: string;
   }) => {
     let photoUrl = '';
 
@@ -75,6 +76,47 @@ export default function Home() {
       photoUrl = urlData.publicUrl;
     }
 
+    // Geocode address if this is a steal
+    let latitude = null;
+    let longitude = null;
+    let fullAddress = '';
+    if (data.isSteal && data.address) {
+      // Append city, state, and ZIP to street address
+      fullAddress = `${data.address}, West Jordan, UT 84081`;
+
+      try {
+        console.log('Geocoding address:', fullAddress);
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+            fullAddress
+          )}&format=json&limit=1`,
+          {
+            headers: {
+              'User-Agent': 'PeppermintTracker/1.0'
+            }
+          }
+        );
+        const results = await response.json();
+        console.log('Geocoding results:', results);
+        if (results && results.length > 0) {
+          latitude = parseFloat(results[0].lat);
+          longitude = parseFloat(results[0].lon);
+          console.log('Coordinates:', { latitude, longitude });
+        } else {
+          console.warn('No geocoding results found for address:', fullAddress);
+          alert('Could not find coordinates for this address. Please enter a valid street address in West Jordan.');
+          throw new Error('Geocoding failed - no results');
+        }
+      } catch (error) {
+        console.error('Error geocoding address:', error);
+        if (error instanceof Error && error.message === 'Geocoding failed - no results') {
+          throw error;
+        }
+        alert('Error looking up address coordinates. Please check your internet connection and try again.');
+        throw new Error('Geocoding API error');
+      }
+    }
+
     // Insert record into database
     const { error: insertError } = await supabase.from('photos').insert({
       url: photoUrl,
@@ -82,6 +124,9 @@ export default function Home() {
       caption: data.caption || null,
       is_steal: data.isSteal,
       video_url: data.videoUrl || null,
+      address: data.isSteal ? fullAddress : null,
+      latitude: latitude,
+      longitude: longitude,
     });
 
     if (insertError) {

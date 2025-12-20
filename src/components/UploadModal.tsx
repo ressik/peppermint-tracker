@@ -11,6 +11,7 @@ interface UploadModalProps {
     caption: string;
     isSteal: boolean;
     videoUrl: string;
+    address: string;
   }) => Promise<void>;
 }
 
@@ -22,6 +23,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [address, setAddress] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,6 +41,10 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if ((!file && !videoUrl) || !uploaderName) return;
+    if (isSteal && !address.trim()) {
+      alert('Please enter your address for steal tracking');
+      return;
+    }
 
     setIsUploading(true);
     try {
@@ -48,12 +54,14 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
         caption,
         isSteal,
         videoUrl,
+        address: isSteal ? address : '',
       });
       // Reset form
       setUploaderName('');
       setCaption('');
       setIsSteal(false);
       setVideoUrl('');
+      setAddress('');
       setFile(null);
       setPreview(null);
       onClose();
@@ -69,6 +77,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
     setCaption('');
     setIsSteal(false);
     setVideoUrl('');
+    setAddress('');
     setFile(null);
     setPreview(null);
     onClose();
@@ -180,6 +189,26 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
             />
             <span className="text-sm text-white/80">Count as a steal on the leaderboard</span>
           </label>
+
+          {/* Address (shown only when counting as steal) */}
+          {isSteal && (
+            <div>
+              <label className="block text-sm font-medium text-white/80 mb-1">
+                Your Street Address *
+              </label>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                required
+                className="w-full px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffd700]"
+                placeholder="123 Main St"
+              />
+              <p className="text-xs text-white/40 mt-1">
+                West Jordan, UT 84081
+              </p>
+            </div>
+          )}
 
           {/* Submit Button */}
           <button
