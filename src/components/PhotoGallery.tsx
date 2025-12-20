@@ -107,13 +107,27 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
     );
   }
 
+  // Find the current location (most recent steal)
+  const steals = photos.filter((p) => p.isSteal);
+  const currentLocation = steals.length > 0
+    ? steals.reduce((latest, photo) =>
+        new Date(photo.createdAt) > new Date(latest.createdAt) ? photo : latest
+      )
+    : null;
+
   return (
     <>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {photos.map((photo) => (
+        {photos.map((photo) => {
+          const isCurrent = currentLocation?.id === photo.id;
+          return (
           <div
             key={photo.id}
-            className="card-christmas overflow-hidden cursor-pointer gallery-image"
+            className={`overflow-hidden cursor-pointer gallery-image ${
+              isCurrent
+                ? 'card-christmas-current'
+                : 'card-christmas'
+            }`}
             onClick={() => setSelectedPhoto(photo)}
           >
             <div className="relative aspect-square">
@@ -187,7 +201,8 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
               </div>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Lightbox Modal */}
