@@ -297,12 +297,12 @@ export default function ChatPage() {
 
       {/* Message Input */}
       <form onSubmit={handleSendMessage} className="flex gap-2">
-        <input
-          type="text"
+        <textarea
           value={messageText}
           onChange={(e) => setMessageText(e.target.value)}
           placeholder="Type a message..."
-          className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffd700]"
+          rows={3}
+          className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffd700] resize-none"
         />
         <button
           type="submit"
