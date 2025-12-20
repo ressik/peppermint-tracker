@@ -8,6 +8,7 @@ export interface Photo {
   address?: string;
   latitude?: number;
   longitude?: number;
+  isSteal?: boolean;
 }
 
 export interface LeaderboardEntry {

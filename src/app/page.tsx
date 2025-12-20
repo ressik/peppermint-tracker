@@ -38,6 +38,7 @@ export default function Home() {
           address: photo.address,
           latitude: photo.latitude,
           longitude: photo.longitude,
+          isSteal: photo.is_steal,
         }))
       );
     }

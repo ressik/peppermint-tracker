@@ -45,6 +45,7 @@ export default function MapPage() {
           address: photo.address,
           latitude: photo.latitude,
           longitude: photo.longitude,
+          isSteal: photo.is_steal,
         }))
       );
     }
