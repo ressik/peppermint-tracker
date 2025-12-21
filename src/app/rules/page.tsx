@@ -82,6 +82,15 @@ export default function RulesPage() {
               6
             </span>
             <div className="flex-1 pt-1">
+              <p>For the sake of Peppermint's life and longevity, do not wrap, tie, or secure the cord or Peppermint in any way.</p>
+            </div>
+          </li>
+
+          <li className="flex gap-4">
+            <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#c41e3a] flex items-center justify-center text-white text-sm font-medium">
+              7
+            </span>
+            <div className="flex-1 pt-1">
               <p>Winner must send Paul and Tiffany photographic proof at noon on January 1st.</p>
             </div>
           </li>
