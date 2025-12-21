@@ -11,9 +11,9 @@ interface Announcement {
 
 // Update this configuration to show new announcements
 const CURRENT_ANNOUNCEMENT: Announcement = {
-  id: 'rules-update-2025-12', // Change this ID to show a new message
+  id: 'rules-update2-2025-12', // Change this ID to show a new message
   title: 'Important Update',
-  message: "As we've been watching the videos, we've decided to add a couple new rules for Peppermint's health. Please review the rules to ensure you're caught up! We want Peppermint to live a long and healthy life so we can do this again next year.",
+  message: "As we've been watching the videos and taking player feedback into account, we've decided to add a couple new rules for Peppermint's health. Please review the rules to ensure you're caught up! We want Peppermint to live a long and healthy life so we can do this again next year.",
   buttonText: 'Continue',
 };
 
