@@ -11,10 +11,83 @@ export default function Home() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
-  // Fetch photos from Supabase
+  // Request notification permission on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'granted') {
+        setNotificationsEnabled(true);
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then((permission) => {
+          if (permission === 'granted') {
+            setNotificationsEnabled(true);
+          }
+        });
+      }
+    }
+  }, []);
+
+  // Fetch photos from Supabase and subscribe to new uploads
   useEffect(() => {
     fetchPhotos();
+
+    // Subscribe to new photo uploads
+    const channel = supabase
+      .channel('photos')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'photos',
+        },
+        (payload) => {
+          const newPhoto: Photo = {
+            id: payload.new.id,
+            url: payload.new.url,
+            uploaderName: payload.new.uploader_name,
+            caption: payload.new.caption,
+            videoUrl: payload.new.video_url,
+            createdAt: payload.new.created_at,
+            address: payload.new.address,
+            latitude: payload.new.latitude,
+            longitude: payload.new.longitude,
+            isSteal: payload.new.is_steal,
+          };
+
+          console.log('New photo uploaded:', newPhoto);
+
+          // Add to photos list
+          setPhotos((prev) => [newPhoto, ...prev]);
+
+          // Vibrate on mobile
+          if ('vibrate' in navigator) {
+            navigator.vibrate(200);
+          }
+
+          // Show notification
+          if (
+            typeof window !== 'undefined' &&
+            'Notification' in window &&
+            Notification.permission === 'granted'
+          ) {
+            new Notification(`New photo from ${newPhoto.uploaderName}!`, {
+              body: newPhoto.caption || 'Check out the latest Peppermint sighting!',
+              icon: '/icon-192.png',
+              badge: '/icon-96.png',
+              tag: 'peppermint-upload',
+              requireInteraction: false,
+              silent: false,
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchPhotos = async () => {
