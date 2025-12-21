@@ -46,3 +46,11 @@ export interface PhotoReaction {
   emoji: string;
   createdAt: string;
 }
+
+export interface CommentReaction {
+  id: string;
+  commentId: string;
+  userName: string;
+  emoji: string;
+  createdAt: string;
+}

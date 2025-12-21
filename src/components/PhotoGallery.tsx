@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Photo, Comment, PhotoReaction } from '@/lib/types';
+import { Photo, Comment, PhotoReaction, CommentReaction } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 
 interface PhotoGalleryProps {
@@ -21,6 +21,9 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
   const [showReactionDetails, setShowReactionDetails] = useState<string | null>(null);
   const [userName, setUserName] = useState('');
+  const [commentReactions, setCommentReactions] = useState<CommentReaction[]>([]);
+  const [showCommentReactionPicker, setShowCommentReactionPicker] = useState<string | null>(null);
+  const [showCommentReactionDetails, setShowCommentReactionDetails] = useState<string | null>(null);
 
   const AVAILABLE_EMOJIS = ['👍', '❤️', '😂', '😭'];
 
@@ -65,6 +68,14 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
       subscribeToReactions();
     }
   }, [photos]);
+
+  // Fetch comment reactions
+  useEffect(() => {
+    if (comments.length > 0) {
+      fetchCommentReactions();
+      subscribeToCommentReactions();
+    }
+  }, [comments]);
 
   const fetchCommentCounts = async () => {
     if (photos.length === 0) return;
@@ -223,6 +234,103 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
     const summary: Record<string, { count: number; users: string[] }> = {};
 
     photoReactions.forEach((r) => {
+      if (!summary[r.emoji]) {
+        summary[r.emoji] = { count: 0, users: [] };
+      }
+      summary[r.emoji].count++;
+      summary[r.emoji].users.push(r.userName);
+    });
+
+    return summary;
+  };
+
+  const fetchCommentReactions = async () => {
+    const { data, error } = await supabase
+      .from('comment_reactions')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching comment reactions:', error);
+    } else {
+      setCommentReactions(
+        data.map((r) => ({
+          id: r.id,
+          commentId: r.comment_id,
+          userName: r.user_name,
+          emoji: r.emoji,
+          createdAt: r.created_at,
+        }))
+      );
+    }
+  };
+
+  const subscribeToCommentReactions = () => {
+    const channel = supabase
+      .channel('comment_reactions_channel')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comment_reactions',
+        },
+        () => {
+          fetchCommentReactions();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
+
+  const handleAddCommentReaction = async (commentId: string, emoji: string) => {
+    if (!userName) {
+      const name = prompt('Please enter your name to react:');
+      if (!name) return;
+      setUserName(name);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('peppermint-chat-name', name);
+      }
+    }
+
+    const existingReaction = commentReactions.find(
+      (r) => r.commentId === commentId && r.userName === (userName || '') && r.emoji === emoji
+    );
+
+    if (existingReaction) {
+      // Remove reaction
+      const { error } = await supabase
+        .from('comment_reactions')
+        .delete()
+        .eq('id', existingReaction.id);
+
+      if (error) {
+        console.error('Error removing comment reaction:', error);
+      }
+    } else {
+      // Add reaction
+      const { error } = await supabase.from('comment_reactions').insert({
+        comment_id: commentId,
+        user_name: userName || '',
+        emoji,
+      });
+
+      if (error) {
+        console.error('Error adding comment reaction:', error);
+      }
+    }
+
+    setShowCommentReactionPicker(null);
+  };
+
+  const getCommentReactionSummary = (commentId: string) => {
+    const commentReacts = commentReactions.filter((r) => r.commentId === commentId);
+    const summary: Record<string, { count: number; users: string[] }> = {};
+
+    commentReacts.forEach((r) => {
       if (!summary[r.emoji]) {
         summary[r.emoji] = { count: 0, users: [] };
       }
@@ -506,17 +614,83 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                   <p className="text-white/40 text-xs">No comments yet. Be the first!</p>
                 ) : (
                   <div className="space-y-3 mb-4">
-                    {comments.map((c) => (
-                      <div key={c.id} className="bg-white/5 rounded-lg p-3">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-white/90 text-sm font-medium">{c.name}</span>
-                          <span className="text-white/40 text-xs">
-                            {new Date(c.createdAt).toLocaleDateString()}
-                          </span>
+                    {comments.map((c) => {
+                      const commentReactionSummary = getCommentReactionSummary(c.id);
+                      const hasCommentReactions = Object.keys(commentReactionSummary).length > 0;
+
+                      return (
+                        <div key={c.id} className="bg-white/5 rounded-lg p-3 pr-10 relative">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-white/90 text-sm font-medium">{c.name}</span>
+                            <span className="text-white/40 text-xs">
+                              {new Date(c.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                          <p className="text-white/70 text-sm">{c.comment}</p>
+
+                          {/* Add Reaction Button */}
+                          <div className="absolute top-2 right-2">
+                            <button
+                              onClick={() => setShowCommentReactionPicker(showCommentReactionPicker === c.id ? null : c.id)}
+                              className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-sm transition-all"
+                              title="Add reaction"
+                            >
+                              +
+                            </button>
+                            {/* Reaction Picker */}
+                            {showCommentReactionPicker === c.id && (
+                              <div className="absolute top-full right-0 mt-2 flex gap-1 bg-white/20 backdrop-blur-sm rounded-full p-1.5 shadow-lg z-50">
+                                {AVAILABLE_EMOJIS.map((emoji) => (
+                                  <button
+                                    key={emoji}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleAddCommentReaction(c.id, emoji);
+                                    }}
+                                    className="w-10 h-10 hover:bg-white/20 rounded-full flex items-center justify-center text-2xl transition-all hover:scale-110"
+                                  >
+                                    {emoji}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Display Reactions */}
+                          {hasCommentReactions && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              {Object.entries(commentReactionSummary).map(([emoji, { count, users }]) => {
+                                const userReacted = users.includes(userName);
+                                return (
+                                  <button
+                                    key={emoji}
+                                    onClick={() => handleAddCommentReaction(c.id, emoji)}
+                                    onMouseEnter={() => setShowCommentReactionDetails(`${c.id}-${emoji}`)}
+                                    onMouseLeave={() => setShowCommentReactionDetails(null)}
+                                    className={`relative px-2.5 py-1.5 rounded-full text-sm flex items-center gap-1 transition-all ${
+                                      userReacted
+                                        ? 'bg-[#c41e3a]/80 text-white'
+                                        : 'bg-white/10 text-white/80 hover:bg-white/20'
+                                    }`}
+                                    title={users.join(', ')}
+                                  >
+                                    <span className="text-base">{emoji}</span>
+                                    <span className="text-sm">{count}</span>
+
+                                    {/* Reaction Details Tooltip */}
+                                    {showCommentReactionDetails === `${c.id}-${emoji}` && (
+                                      <div className="absolute bottom-full left-0 mb-1 bg-black/90 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                                        {users.join(', ')}
+                                      </div>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
-                        <p className="text-white/70 text-sm">{c.comment}</p>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
 
