@@ -506,7 +506,7 @@ export default function ChatPage() {
                 >
                   <div className="flex flex-col max-w-[70%] relative group">
                     <div
-                      className={`rounded-lg p-3 ${
+                      className={`rounded-lg p-3 pr-10 relative ${
                         msg.name === userName
                           ? 'bg-[#c41e3a] text-white'
                           : 'bg-white/10 text-white/90'
@@ -526,7 +526,7 @@ export default function ChatPage() {
                       {/* Add Reaction Button */}
                       <button
                         onClick={() => setShowReactionPicker(showReactionPicker === msg.id ? null : msg.id)}
-                        className="absolute -bottom-2 -right-2 w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute bottom-2 right-2 w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-sm transition-all"
                         title="Add reaction"
                       >
                         +
@@ -535,12 +535,12 @@ export default function ChatPage() {
 
                     {/* Reaction Picker */}
                     {showReactionPicker === msg.id && (
-                      <div className="absolute bottom-full right-0 mb-2 flex gap-1 bg-white/20 backdrop-blur-sm rounded-full p-1 shadow-lg">
+                      <div className="absolute bottom-full right-0 mb-2 flex gap-1 bg-white/20 backdrop-blur-sm rounded-full p-1.5 shadow-lg">
                         {AVAILABLE_EMOJIS.map((emoji) => (
                           <button
                             key={emoji}
                             onClick={() => handleAddReaction(msg.id, emoji)}
-                            className="w-8 h-8 hover:bg-white/20 rounded-full flex items-center justify-center text-lg transition-all hover:scale-110"
+                            className="w-10 h-10 hover:bg-white/20 rounded-full flex items-center justify-center text-2xl transition-all hover:scale-110"
                           >
                             {emoji}
                           </button>
@@ -559,15 +559,15 @@ export default function ChatPage() {
                               onClick={() => handleAddReaction(msg.id, emoji)}
                               onMouseEnter={() => setShowReactionDetails(`${msg.id}-${emoji}`)}
                               onMouseLeave={() => setShowReactionDetails(null)}
-                              className={`relative px-2 py-1 rounded-full text-xs flex items-center gap-1 transition-all ${
+                              className={`relative px-2.5 py-1.5 rounded-full text-sm flex items-center gap-1 transition-all ${
                                 userReacted
                                   ? 'bg-[#c41e3a]/80 text-white'
                                   : 'bg-white/10 text-white/80 hover:bg-white/20'
                               }`}
                               title={users.join(', ')}
                             >
-                              <span>{emoji}</span>
-                              <span className="text-xs">{count}</span>
+                              <span className="text-base">{emoji}</span>
+                              <span className="text-sm">{count}</span>
 
                               {/* Reaction Details Tooltip */}
                               {showReactionDetails === `${msg.id}-${emoji}` && (

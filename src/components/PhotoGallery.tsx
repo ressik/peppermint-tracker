@@ -344,15 +344,15 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                           e.stopPropagation();
                           handleAddReaction(photo.id, emoji);
                         }}
-                        className={`relative inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs transition-all hover:scale-110 ${
+                        className={`relative inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm transition-all hover:scale-110 ${
                           userReacted
                             ? 'bg-[#c41e3a]/80 text-white'
                             : 'bg-white/10 text-white/80 hover:bg-white/20'
                         }`}
                         title={users.join(', ')}
                       >
-                        <span>{emoji}</span>
-                        <span className="text-[10px]">{count}</span>
+                        <span className="text-base">{emoji}</span>
+                        <span className="text-xs">{count}</span>
                       </button>
                     );
                   })}
@@ -362,12 +362,12 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                         e.stopPropagation();
                         setShowReactionPicker(showReactionPicker === photo.id ? null : photo.id);
                       }}
-                      className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white/90 transition-all text-xs"
+                      className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white/90 transition-all text-sm"
                     >
                       +
                     </button>
                     {showReactionPicker === photo.id && (
-                      <div className="absolute bottom-full right-0 mb-2 flex gap-1 bg-white/20 backdrop-blur-sm rounded-full p-1 shadow-lg z-10">
+                      <div className="absolute bottom-full right-0 mb-2 flex gap-1 bg-white/20 backdrop-blur-sm rounded-full p-1.5 shadow-lg z-10">
                         {AVAILABLE_EMOJIS.map((emoji) => (
                           <button
                             key={emoji}
@@ -375,7 +375,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                               e.stopPropagation();
                               handleAddReaction(photo.id, emoji);
                             }}
-                            className="w-8 h-8 hover:bg-white/20 rounded-full flex items-center justify-center text-lg transition-all hover:scale-110"
+                            className="w-10 h-10 hover:bg-white/20 rounded-full flex items-center justify-center text-2xl transition-all hover:scale-110"
                           >
                             {emoji}
                           </button>
@@ -451,14 +451,14 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                         onClick={() => handleAddReaction(selectedPhoto.id, emoji)}
                         onMouseEnter={() => setShowReactionDetails(`${selectedPhoto.id}-${emoji}`)}
                         onMouseLeave={() => setShowReactionDetails(null)}
-                        className={`relative inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm transition-all hover:scale-105 ${
+                        className={`relative inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-base transition-all hover:scale-105 ${
                           userReacted
                             ? 'bg-[#c41e3a]/80 text-white'
                             : 'bg-white/10 text-white/80 hover:bg-white/20'
                         }`}
                       >
-                        <span className="text-base">{emoji}</span>
-                        <span className="text-xs">{count}</span>
+                        <span className="text-xl">{emoji}</span>
+                        <span className="text-sm">{count}</span>
                         {showReactionDetails === `${selectedPhoto.id}-${emoji}` && (
                           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-black/90 text-white text-xs rounded px-2 py-1 whitespace-nowrap pointer-events-none">
                             {users.join(', ')}
@@ -470,17 +470,17 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                   <div className="relative">
                     <button
                       onClick={() => setShowReactionPicker(showReactionPicker === selectedPhoto.id ? null : selectedPhoto.id)}
-                      className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white/90 transition-all"
+                      className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white/90 transition-all"
                     >
-                      <span className="text-lg">+</span>
+                      <span className="text-xl">+</span>
                     </button>
                     {showReactionPicker === selectedPhoto.id && (
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex gap-1 bg-white/20 backdrop-blur-sm rounded-full p-1 shadow-lg">
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 flex gap-1 bg-white/20 backdrop-blur-sm rounded-full p-1.5 shadow-lg">
                         {AVAILABLE_EMOJIS.map((emoji) => (
                           <button
                             key={emoji}
                             onClick={() => handleAddReaction(selectedPhoto.id, emoji)}
-                            className="w-10 h-10 hover:bg-white/20 rounded-full flex items-center justify-center text-xl transition-all hover:scale-110"
+                            className="w-12 h-12 hover:bg-white/20 rounded-full flex items-center justify-center text-2xl transition-all hover:scale-110"
                           >
                             {emoji}
                           </button>
