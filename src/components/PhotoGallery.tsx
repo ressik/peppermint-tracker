@@ -315,9 +315,14 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
               <p className="text-white/90 text-sm">
                 {photo.uploaderName}
               </p>
-              {photo.caption && (
-                <p className="text-white/60 text-xs mt-1">{photo.caption}</p>
-              )}
+              <div className="flex items-start justify-between gap-2 mt-1">
+                {photo.caption && (
+                  <p className="text-white/60 text-xs">{photo.caption}</p>
+                )}
+                <p className="text-white/40 text-xs whitespace-nowrap ml-auto">
+                  {new Date(photo.createdAt).toLocaleDateString()} at {new Date(photo.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
               <div className="flex items-center justify-between gap-3 mt-2">
                 <span className="inline-flex items-center gap-1 text-white/50 text-xs">
                   <svg
@@ -437,7 +442,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                 <p className="text-white/80 text-sm mb-2">{selectedPhoto.caption}</p>
               )}
               <p className="text-xs text-white/60 mt-4">
-                {new Date(selectedPhoto.createdAt).toLocaleDateString()}
+                {new Date(selectedPhoto.createdAt).toLocaleDateString()} at {new Date(selectedPhoto.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
 
               {/* Reactions Section */}
