@@ -353,7 +353,7 @@ export default function ChatPage() {
           alert('Notification sent! Check if you received it.');
         } catch (error) {
           console.error('Error creating test notification:', error);
-          alert('Error creating notification: ' + error.message);
+          alert('Error creating notification: ' + (error instanceof Error ? error.message : String(error)));
         }
       } else {
         alert('Notification permission not granted. Permission: ' + Notification.permission);
