@@ -629,7 +629,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                           <p className="text-white/70 text-sm">{c.comment}</p>
 
                           {/* Add Reaction Button */}
-                          <div className="absolute top-2 right-2">
+                          <div className="absolute bottom-2 right-2">
                             <button
                               onClick={() => setShowCommentReactionPicker(showCommentReactionPicker === c.id ? null : c.id)}
                               className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-sm transition-all"
