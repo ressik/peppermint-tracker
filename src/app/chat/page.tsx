@@ -238,6 +238,30 @@ export default function ChatPage() {
     }
   };
 
+  const renderMessageWithLinks = (text: string) => {
+    // URL regex pattern that matches http(s) URLs
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      // Check if this part is a URL
+      if (part.match(urlRegex)) {
+        return (
+          <a
+            key={index}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-white/80 transition-colors"
+          >
+            {part}
+          </a>
+        );
+      }
+      return <span key={index}>{part}</span>;
+    });
+  };
+
   // Name prompt screen
   if (!hasEnteredName) {
     return (
@@ -359,7 +383,7 @@ export default function ChatPage() {
                   {msg.name !== userName && (
                     <p className="text-xs font-medium mb-1 opacity-80">{msg.name}</p>
                   )}
-                  <p className="text-sm break-words">{msg.message}</p>
+                  <p className="text-sm break-words">{renderMessageWithLinks(msg.message)}</p>
                   <p className="text-xs opacity-60 mt-1">
                     {new Date(msg.createdAt).toLocaleTimeString([], {
                       hour: '2-digit',
@@ -376,12 +400,12 @@ export default function ChatPage() {
 
       {/* Message Input */}
       <form onSubmit={handleSendMessage} className="flex gap-2">
-        <input
-          type="text"
+        <textarea
           value={messageText}
           onChange={(e) => setMessageText(e.target.value)}
           placeholder="Type a message..."
-          className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffd700]"
+          rows={3}
+          className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffd700] resize-none"
         />
         <button
           type="submit"
