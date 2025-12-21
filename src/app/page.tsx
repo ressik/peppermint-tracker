@@ -22,8 +22,28 @@ export default function Home() {
         if (token) {
           console.log('FCM token obtained:', token);
           setNotificationsEnabled(true);
+
           // Store token in localStorage for reference
           localStorage.setItem('fcm-token', token);
+
+          // Save token to Supabase database
+          const userName = localStorage.getItem('peppermint-chat-name') || 'anonymous';
+          const { error } = await supabase
+            .from('fcm_tokens')
+            .upsert({
+              token: token,
+              user_name: userName,
+              device_info: navigator.userAgent,
+              updated_at: new Date().toISOString(),
+            }, {
+              onConflict: 'token',
+            });
+
+          if (error) {
+            console.error('Error saving FCM token to database:', error);
+          } else {
+            console.log('FCM token saved to database');
+          }
         }
       } catch (error) {
         console.error('Error initializing FCM:', error);

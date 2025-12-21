@@ -49,6 +49,24 @@ export default function ChatPage() {
             console.log('FCM token obtained for chat:', token);
             setNotificationsEnabled(true);
             localStorage.setItem('fcm-token', token);
+
+            // Save token to Supabase database
+            const { error } = await supabase
+              .from('fcm_tokens')
+              .upsert({
+                token: token,
+                user_name: userName,
+                device_info: navigator.userAgent,
+                updated_at: new Date().toISOString(),
+              }, {
+                onConflict: 'token',
+              });
+
+            if (error) {
+              console.error('Error saving FCM token to database:', error);
+            } else {
+              console.log('FCM token saved to database');
+            }
           }
         } catch (error) {
           console.error('Error initializing FCM in chat:', error);
