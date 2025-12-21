@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Reaction } from '@/lib/types';
@@ -495,15 +495,38 @@ export default function ChatPage() {
               No messages yet. Start the conversation!
             </p>
           ) : (
-            messages.map((msg) => {
+            messages.map((msg, index) => {
               const reactionSummary = getReactionSummary(msg.id);
               const hasReactions = Object.keys(reactionSummary).length > 0;
 
+              // Check if we need to show a date separator
+              const currentDate = new Date(msg.createdAt).toLocaleDateString();
+              const previousDate = index > 0
+                ? new Date(messages[index - 1].createdAt).toLocaleDateString()
+                : null;
+              const showDateSeparator = index === 0 || currentDate !== previousDate;
+
               return (
-                <div
-                  key={msg.id}
-                  className={`flex ${msg.name === userName ? 'justify-end' : 'justify-start'}`}
-                >
+                <React.Fragment key={msg.id}>
+                  {/* Date Separator */}
+                  {showDateSeparator && (
+                    <div className="flex justify-center my-4">
+                      <div className="bg-white/10 px-3 py-1 rounded-full">
+                        <p className="text-white/60 text-xs font-medium">
+                          {new Date(msg.createdAt).toLocaleDateString([], {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div
+                    className={`flex ${msg.name === userName ? 'justify-end' : 'justify-start'}`}
+                  >
                   <div className="flex flex-col max-w-[70%] relative group">
                     <div
                       className={`rounded-lg p-3 pr-10 relative ${
@@ -584,7 +607,8 @@ export default function ChatPage() {
                       </div>
                     )}
                   </div>
-                </div>
+                  </div>
+                </React.Fragment>
               );
             })
           )}
