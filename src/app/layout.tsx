@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Snowfall from "@/components/Snowfall";
+import AnnouncementModal from "@/components/AnnouncementModal";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -55,6 +56,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
         <Snowfall />
+        <AnnouncementModal />
         <main className="relative z-10">
           {children}
         </main>
