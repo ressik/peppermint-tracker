@@ -356,14 +356,16 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                       </button>
                     );
                   })}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowReactionPicker(showReactionPicker === photo.id ? null : photo.id);
-                    }}
-                    className="relative w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white/90 transition-all text-xs"
-                  >
-                    +
+                  <div className="relative">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowReactionPicker(showReactionPicker === photo.id ? null : photo.id);
+                      }}
+                      className="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/60 hover:text-white/90 transition-all text-xs"
+                    >
+                      +
+                    </button>
                     {showReactionPicker === photo.id && (
                       <div className="absolute bottom-full right-0 mb-2 flex gap-1 bg-white/20 backdrop-blur-sm rounded-full p-1 shadow-lg z-10">
                         {AVAILABLE_EMOJIS.map((emoji) => (
@@ -380,7 +382,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                         ))}
                       </div>
                     )}
-                  </button>
+                  </div>
                 </div>
               </div>
             </div>
