@@ -32,63 +32,66 @@ export default function ChatPage() {
     }
   }, []);
 
-  // Request notification permission when entering chat
+  // Register service worker and request notification permission
   useEffect(() => {
-    if (hasEnteredName && typeof window !== 'undefined' && 'Notification' in window) {
-      if (Notification.permission === 'granted') {
-        setNotificationsEnabled(true);
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then((permission) => {
-          if (permission === 'granted') {
-            setNotificationsEnabled(true);
-          }
-        });
+    if (hasEnteredName && typeof window !== 'undefined') {
+      // Register service worker
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((registration) => {
+            console.log('Service Worker registered:', registration);
+          })
+          .catch((error) => {
+            console.log('Service Worker registration failed:', error);
+          });
+      }
+
+      // Request notification permission
+      if ('Notification' in window) {
+        if (Notification.permission === 'granted') {
+          setNotificationsEnabled(true);
+        } else if (Notification.permission !== 'denied') {
+          Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+              setNotificationsEnabled(true);
+            }
+          });
+        }
       }
     }
   }, [hasEnteredName]);
 
-  // Fetch initial messages
+  // Fetch initial messages and subscribe to new ones
   useEffect(() => {
-    if (hasEnteredName) {
-      fetchMessages();
-      const unsubscribe = subscribeToMessages();
-      return unsubscribe;
-    }
-  }, [hasEnteredName, notificationsEnabled, userName]);
+    if (!hasEnteredName) return;
 
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    const fetchMessages = async () => {
+      setIsLoading(true);
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: true })
+        .limit(100);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+      if (error) {
+        console.error('Error fetching messages:', error);
+      } else {
+        setMessages(
+          data.map((m) => ({
+            id: m.id,
+            name: m.name,
+            message: m.message,
+            createdAt: m.created_at,
+          }))
+        );
+      }
+      setIsLoading(false);
+    };
 
-  const fetchMessages = async () => {
-    setIsLoading(true);
-    const { data, error } = await supabase
-      .from('messages')
-      .select('*')
-      .order('created_at', { ascending: true })
-      .limit(100);
+    fetchMessages();
 
-    if (error) {
-      console.error('Error fetching messages:', error);
-    } else {
-      setMessages(
-        data.map((m) => ({
-          id: m.id,
-          name: m.name,
-          message: m.message,
-          createdAt: m.created_at,
-        }))
-      );
-    }
-    setIsLoading(false);
-  };
-
-  const subscribeToMessages = () => {
+    // Subscribe to new messages
     const channel = supabase
       .channel('messages')
       .on(
@@ -105,21 +108,48 @@ export default function ChatPage() {
             message: payload.new.message,
             createdAt: payload.new.created_at,
           };
+
+          console.log('New message received:', newMessage);
+          console.log('Current userName:', userName);
+          console.log('Notifications enabled:', notificationsEnabled);
+          console.log('Notification permission:', Notification.permission);
+
           setMessages((prev) => [...prev, newMessage]);
 
           // Show notification for messages from others
-          if (
-            notificationsEnabled &&
-            newMessage.name !== userName &&
-            typeof window !== 'undefined' &&
-            'Notification' in window &&
-            Notification.permission === 'granted'
-          ) {
-            new Notification(`New message from ${newMessage.name}`, {
-              body: newMessage.message,
-              icon: '/favicon.ico',
-              tag: 'peppermint-chat',
-            });
+          if (newMessage.name !== userName) {
+            console.log('Message is from someone else, attempting notification...');
+
+            // Vibrate on mobile
+            if ('vibrate' in navigator) {
+              navigator.vibrate(200);
+            }
+
+            if (typeof window !== 'undefined' && 'Notification' in window) {
+              if (Notification.permission === 'granted') {
+                console.log('Showing notification');
+                try {
+                  const notification = new Notification(`New message from ${newMessage.name}`, {
+                    body: newMessage.message,
+                    icon: '/favicon.ico',
+                    badge: '/favicon.ico',
+                    tag: 'peppermint-chat',
+                    requireInteraction: false,
+                    silent: false,
+                    vibrate: [200, 100, 200],
+                  });
+                  console.log('Notification created:', notification);
+                } catch (error) {
+                  console.error('Error creating notification:', error);
+                }
+              } else {
+                console.log('Notification permission not granted:', Notification.permission);
+              }
+            } else {
+              console.log('Notifications not supported');
+            }
+          } else {
+            console.log('Message is from current user, skipping notification');
           }
         }
       )
@@ -128,6 +158,15 @@ export default function ChatPage() {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, [hasEnteredName, userName]);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleEnterChat = (e: React.FormEvent) => {
@@ -163,6 +202,40 @@ export default function ChatPage() {
   const handleChangeName = () => {
     setHasEnteredName(false);
     setInputName('');
+  };
+
+  const testNotification = () => {
+    console.log('Test notification button clicked');
+
+    if ('vibrate' in navigator) {
+      navigator.vibrate(200);
+    }
+
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      console.log('Notification permission:', Notification.permission);
+      if (Notification.permission === 'granted') {
+        try {
+          const notification = new Notification('Test Notification', {
+            body: 'If you see this, notifications are working!',
+            icon: '/favicon.ico',
+            badge: '/favicon.ico',
+            tag: 'test',
+            requireInteraction: false,
+            silent: false,
+            vibrate: [200, 100, 200],
+          });
+          console.log('Test notification created:', notification);
+          alert('Notification sent! Check if you received it.');
+        } catch (error) {
+          console.error('Error creating test notification:', error);
+          alert('Error creating notification: ' + error.message);
+        }
+      } else {
+        alert('Notification permission not granted. Permission: ' + Notification.permission);
+      }
+    } else {
+      alert('Notifications not supported in this browser');
+    }
   };
 
   // Name prompt screen
@@ -216,6 +289,12 @@ export default function ChatPage() {
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-3xl font-light text-white">Chat Room</h1>
           <div className="flex items-center gap-3">
+            <button
+              onClick={testNotification}
+              className="text-xs px-3 py-1 text-white/70 border border-white/20 rounded-full hover:bg-white/10 transition-all"
+            >
+              Test Notification
+            </button>
             <span className="text-sm text-white/60">
               Chatting as <span className="text-white/90 font-medium">{userName}</span>
             </span>
