@@ -143,7 +143,6 @@ export default function ChatPage() {
                     tag: 'peppermint-chat',
                     requireInteraction: false,
                     silent: false,
-                    vibrate: [200, 100, 200],
                   });
                   console.log('Notification created:', notification);
                 } catch (error) {
@@ -349,7 +348,6 @@ export default function ChatPage() {
             tag: 'test',
             requireInteraction: false,
             silent: false,
-            vibrate: [200, 100, 200],
           });
           console.log('Test notification created:', notification);
           alert('Notification sent! Check if you received it.');
