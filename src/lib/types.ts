@@ -38,3 +38,11 @@ export interface Reaction {
   emoji: string;
   createdAt: string;
 }
+
+export interface PhotoReaction {
+  id: string;
+  photoId: string;
+  userName: string;
+  emoji: string;
+  createdAt: string;
+}
