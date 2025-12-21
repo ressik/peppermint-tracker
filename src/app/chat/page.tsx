@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
+import { Reaction } from '@/lib/types';
 
 interface Message {
   id: string;
@@ -19,7 +20,12 @@ export default function ChatPage() {
   const [messageText, setMessageText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [reactions, setReactions] = useState<Reaction[]>([]);
+  const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
+  const [showReactionDetails, setShowReactionDetails] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const AVAILABLE_EMOJIS = ['👍', '❤️', '😂', '😭'];
 
   // Check for saved name in localStorage
   useEffect(() => {
@@ -62,7 +68,7 @@ export default function ChatPage() {
     }
   }, [hasEnteredName]);
 
-  // Fetch initial messages and subscribe to new ones
+  // Fetch initial messages and reactions, subscribe to new ones
   useEffect(() => {
     if (!hasEnteredName) return;
 
@@ -90,6 +96,7 @@ export default function ChatPage() {
     };
 
     fetchMessages();
+    fetchReactions();
 
     // Subscribe to new messages
     const channel = supabase
@@ -155,8 +162,12 @@ export default function ChatPage() {
       )
       .subscribe();
 
+    // Subscribe to reactions
+    const reactionsUnsubscribe = subscribeToReactions();
+
     return () => {
       supabase.removeChannel(channel);
+      reactionsUnsubscribe();
     };
   }, [hasEnteredName, userName]);
 
@@ -202,6 +213,122 @@ export default function ChatPage() {
   const handleChangeName = () => {
     setHasEnteredName(false);
     setInputName('');
+  };
+
+  // Fetch reactions for all messages
+  const fetchReactions = async () => {
+    const { data, error } = await supabase
+      .from('reactions')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching reactions:', error);
+    } else {
+      setReactions(
+        data.map((r) => ({
+          id: r.id,
+          messageId: r.message_id,
+          userName: r.user_name,
+          emoji: r.emoji,
+          createdAt: r.created_at,
+        }))
+      );
+    }
+  };
+
+  // Subscribe to reaction changes
+  const subscribeToReactions = () => {
+    const channel = supabase
+      .channel('reactions')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'reactions',
+        },
+        (payload) => {
+          const newReaction: Reaction = {
+            id: payload.new.id,
+            messageId: payload.new.message_id,
+            userName: payload.new.user_name,
+            emoji: payload.new.emoji,
+            createdAt: payload.new.created_at,
+          };
+          setReactions((prev) => [...prev, newReaction]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'reactions',
+        },
+        (payload) => {
+          setReactions((prev) => prev.filter((r) => r.id !== payload.old.id));
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  };
+
+  // Handle adding a reaction
+  const handleAddReaction = async (messageId: string, emoji: string) => {
+    // Check if user already reacted with this emoji
+    const existingReaction = reactions.find(
+      (r) => r.messageId === messageId && r.userName === userName && r.emoji === emoji
+    );
+
+    if (existingReaction) {
+      // Remove the reaction
+      const { error } = await supabase
+        .from('reactions')
+        .delete()
+        .eq('id', existingReaction.id);
+
+      if (error) {
+        console.error('Error removing reaction:', error);
+      }
+    } else {
+      // Add the reaction
+      const { error } = await supabase.from('reactions').insert({
+        message_id: messageId,
+        user_name: userName,
+        emoji: emoji,
+      });
+
+      if (error) {
+        console.error('Error adding reaction:', error);
+      }
+    }
+
+    setShowReactionPicker(null);
+  };
+
+  // Get reactions for a specific message
+  const getReactionsForMessage = (messageId: string) => {
+    return reactions.filter((r) => r.messageId === messageId);
+  };
+
+  // Get reaction summary (grouped by emoji with counts and users)
+  const getReactionSummary = (messageId: string) => {
+    const messageReactions = getReactionsForMessage(messageId);
+    const summary: { [emoji: string]: { count: number; users: string[] } } = {};
+
+    messageReactions.forEach((r) => {
+      if (!summary[r.emoji]) {
+        summary[r.emoji] = { count: 0, users: [] };
+      }
+      summary[r.emoji].count++;
+      summary[r.emoji].users.push(r.userName);
+    });
+
+    return summary;
   };
 
   const testNotification = () => {
@@ -368,31 +495,95 @@ export default function ChatPage() {
               No messages yet. Start the conversation!
             </p>
           ) : (
-            messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex ${msg.name === userName ? 'justify-end' : 'justify-start'}`}
-              >
+            messages.map((msg) => {
+              const reactionSummary = getReactionSummary(msg.id);
+              const hasReactions = Object.keys(reactionSummary).length > 0;
+
+              return (
                 <div
-                  className={`max-w-[70%] rounded-lg p-3 ${
-                    msg.name === userName
-                      ? 'bg-[#c41e3a] text-white'
-                      : 'bg-white/10 text-white/90'
-                  }`}
+                  key={msg.id}
+                  className={`flex ${msg.name === userName ? 'justify-end' : 'justify-start'}`}
                 >
-                  {msg.name !== userName && (
-                    <p className="text-xs font-medium mb-1 opacity-80">{msg.name}</p>
-                  )}
-                  <p className="text-sm break-words">{renderMessageWithLinks(msg.message)}</p>
-                  <p className="text-xs opacity-60 mt-1">
-                    {new Date(msg.createdAt).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </p>
+                  <div className="flex flex-col max-w-[70%] relative group">
+                    <div
+                      className={`rounded-lg p-3 ${
+                        msg.name === userName
+                          ? 'bg-[#c41e3a] text-white'
+                          : 'bg-white/10 text-white/90'
+                      }`}
+                    >
+                      {msg.name !== userName && (
+                        <p className="text-xs font-medium mb-1 opacity-80">{msg.name}</p>
+                      )}
+                      <p className="text-sm break-words">{renderMessageWithLinks(msg.message)}</p>
+                      <p className="text-xs opacity-60 mt-1">
+                        {new Date(msg.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+
+                      {/* Add Reaction Button */}
+                      <button
+                        onClick={() => setShowReactionPicker(showReactionPicker === msg.id ? null : msg.id)}
+                        className="absolute -bottom-2 -right-2 w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Add reaction"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    {/* Reaction Picker */}
+                    {showReactionPicker === msg.id && (
+                      <div className="absolute bottom-full right-0 mb-2 flex gap-1 bg-white/20 backdrop-blur-sm rounded-full p-1 shadow-lg">
+                        {AVAILABLE_EMOJIS.map((emoji) => (
+                          <button
+                            key={emoji}
+                            onClick={() => handleAddReaction(msg.id, emoji)}
+                            className="w-8 h-8 hover:bg-white/20 rounded-full flex items-center justify-center text-lg transition-all hover:scale-110"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Display Reactions */}
+                    {hasReactions && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {Object.entries(reactionSummary).map(([emoji, { count, users }]) => {
+                          const userReacted = users.includes(userName);
+                          return (
+                            <button
+                              key={emoji}
+                              onClick={() => handleAddReaction(msg.id, emoji)}
+                              onMouseEnter={() => setShowReactionDetails(`${msg.id}-${emoji}`)}
+                              onMouseLeave={() => setShowReactionDetails(null)}
+                              className={`relative px-2 py-1 rounded-full text-xs flex items-center gap-1 transition-all ${
+                                userReacted
+                                  ? 'bg-[#c41e3a]/80 text-white'
+                                  : 'bg-white/10 text-white/80 hover:bg-white/20'
+                              }`}
+                              title={users.join(', ')}
+                            >
+                              <span>{emoji}</span>
+                              <span className="text-xs">{count}</span>
+
+                              {/* Reaction Details Tooltip */}
+                              {showReactionDetails === `${msg.id}-${emoji}` && (
+                                <div className="absolute bottom-full left-0 mb-1 bg-black/90 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
+                                  {users.join(', ')}
+                                </div>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
           <div ref={messagesEndRef} />
         </div>

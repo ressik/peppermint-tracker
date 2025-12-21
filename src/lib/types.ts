@@ -30,3 +30,11 @@ export interface Comment {
   comment: string;
   createdAt: string;
 }
+
+export interface Reaction {
+  id: string;
+  messageId: string;
+  userName: string;
+  emoji: string;
+  createdAt: string;
+}
