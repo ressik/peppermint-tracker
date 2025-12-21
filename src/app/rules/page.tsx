@@ -82,7 +82,7 @@ export default function RulesPage() {
               6
             </span>
             <div className="flex-1 pt-1">
-              <p>For the sake of Peppermint's life and longevity, do not wrap, tie, or secure the cord or Peppermint in any way.</p>
+              <p>For the sake of Peppermint's (and your) life and longevity, do not wrap, tie, or secure the cord or Peppermint in any way.</p>
             </div>
           </li>
 
