@@ -535,11 +535,14 @@ export default function ChatPage() {
 
                     {/* Reaction Picker */}
                     {showReactionPicker === msg.id && (
-                      <div className="absolute bottom-full right-0 mb-2 flex gap-1 bg-white/20 backdrop-blur-sm rounded-full p-1.5 shadow-lg">
+                      <div className="absolute top-full right-0 mt-2 flex gap-1 bg-white/20 backdrop-blur-sm rounded-full p-1.5 shadow-lg z-50">
                         {AVAILABLE_EMOJIS.map((emoji) => (
                           <button
                             key={emoji}
-                            onClick={() => handleAddReaction(msg.id, emoji)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAddReaction(msg.id, emoji);
+                            }}
                             className="w-10 h-10 hover:bg-white/20 rounded-full flex items-center justify-center text-2xl transition-all hover:scale-110"
                           >
                             {emoji}
