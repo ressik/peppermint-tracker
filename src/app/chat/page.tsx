@@ -438,12 +438,14 @@ export default function ChatPage() {
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-3xl font-light text-white">Chat Room</h1>
           <div className="flex items-center gap-3">
-            <button
-              onClick={testNotification}
-              className="text-xs px-3 py-1 text-white/70 border border-white/20 rounded-full hover:bg-white/10 transition-all"
-            >
-              Test Notification
-            </button>
+            {userName === 'Tester' && (
+              <button
+                onClick={testNotification}
+                className="text-xs px-3 py-1 text-white/70 border border-white/20 rounded-full hover:bg-white/10 transition-all"
+              >
+                Test Notification
+              </button>
+            )}
             <span className="text-sm text-white/60">
               Chatting as <span className="text-white/90 font-medium">{userName}</span>
             </span>
