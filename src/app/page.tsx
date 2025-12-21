@@ -6,6 +6,7 @@ import PhotoGallery from '@/components/PhotoGallery';
 import UploadModal from '@/components/UploadModal';
 import { Photo } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
+import { getFCMToken, onMessageListener } from '@/lib/firebase';
 
 export default function Home() {
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -13,19 +14,44 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
-  // Request notification permission on mount
+  // Request FCM notification permission on mount
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      if (Notification.permission === 'granted') {
-        setNotificationsEnabled(true);
-      } else if (Notification.permission !== 'denied') {
-        Notification.requestPermission().then((permission) => {
-          if (permission === 'granted') {
-            setNotificationsEnabled(true);
-          }
-        });
+    const initFCM = async () => {
+      try {
+        const token = await getFCMToken();
+        if (token) {
+          console.log('FCM token obtained:', token);
+          setNotificationsEnabled(true);
+          // Store token in localStorage for reference
+          localStorage.setItem('fcm-token', token);
+        }
+      } catch (error) {
+        console.error('Error initializing FCM:', error);
       }
-    }
+    };
+
+    initFCM();
+
+    // Listen for foreground messages
+    onMessageListener((payload) => {
+      console.log('Foreground message received:', payload);
+
+      // Show browser notification for foreground messages
+      if (Notification.permission === 'granted') {
+        const title = payload.notification?.title || 'Peppermint Tracker';
+        const options = {
+          body: payload.notification?.body || 'New update!',
+          icon: '/icon-192.png',
+          badge: '/icon-96.png',
+        };
+        new Notification(title, options);
+      }
+
+      // Vibrate
+      if ('vibrate' in navigator) {
+        navigator.vibrate(200);
+      }
+    });
   }, []);
 
   // Fetch photos from Supabase and subscribe to new uploads

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { Reaction } from '@/lib/types';
+import { getFCMToken, onMessageListener } from '@/lib/firebase';
 
 interface Message {
   id: string;
@@ -38,33 +39,44 @@ export default function ChatPage() {
     }
   }, []);
 
-  // Register service worker and request notification permission
+  // Initialize FCM when user enters chat
   useEffect(() => {
     if (hasEnteredName && typeof window !== 'undefined') {
-      // Register service worker
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker
-          .register('/sw.js')
-          .then((registration) => {
-            console.log('Service Worker registered:', registration);
-          })
-          .catch((error) => {
-            console.log('Service Worker registration failed:', error);
-          });
-      }
-
-      // Request notification permission
-      if ('Notification' in window) {
-        if (Notification.permission === 'granted') {
-          setNotificationsEnabled(true);
-        } else if (Notification.permission !== 'denied') {
-          Notification.requestPermission().then((permission) => {
-            if (permission === 'granted') {
-              setNotificationsEnabled(true);
-            }
-          });
+      const initFCM = async () => {
+        try {
+          const token = await getFCMToken();
+          if (token) {
+            console.log('FCM token obtained for chat:', token);
+            setNotificationsEnabled(true);
+            localStorage.setItem('fcm-token', token);
+          }
+        } catch (error) {
+          console.error('Error initializing FCM in chat:', error);
         }
-      }
+      };
+
+      initFCM();
+
+      // Listen for foreground messages
+      onMessageListener((payload) => {
+        console.log('Chat foreground message received:', payload);
+
+        // Show browser notification
+        if (Notification.permission === 'granted') {
+          const title = payload.notification?.title || 'New Chat Message';
+          const options = {
+            body: payload.notification?.body || 'You have a new message',
+            icon: '/icon-192.png',
+            badge: '/icon-96.png',
+          };
+          new Notification(title, options);
+        }
+
+        // Vibrate
+        if ('vibrate' in navigator) {
+          navigator.vibrate(200);
+        }
+      });
     }
   }, [hasEnteredName]);
 
