@@ -55,6 +55,10 @@ export default function RulesPage() {
                   <span className="text-white/40">•</span>
                   <span>To make the rules more fair, you MUST be caught person to person. For example, it doesn't count if they speak through the Ring doorbell, flash porch lights, etc...</span>
                 </li>
+                <li className="flex gap-2">
+                  <span className="text-white/40">•</span>
+                  <span>If you make it to the sidewalk before getting caught, you're SAFE!</span>
+                </li>
               </ul>
             </div>
           </li>
