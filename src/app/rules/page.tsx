@@ -53,7 +53,7 @@ export default function RulesPage() {
                 </li>
                 <li className="flex gap-2">
                   <span className="text-white/40">•</span>
-                  <span>It is completely acceptable to cover a ring doorbell and NOT be caught, even if the person is yelling through the speaker. If they don&apos;t witness the theft, they don&apos;t catch you.</span>
+                  <span>To make the rules more fair, you MUST be caught person to person. For example, it doesn't count if they speak through the Ring doorbell, flash porch lights, etc...</span>
                 </li>
               </ul>
             </div>
