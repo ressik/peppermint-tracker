@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 export default function DebugServiceWorker() {
-  const [registrations, setRegistrations] = useState<any[]>([]);
+  const [registrations, setRegistrations] = useState<ServiceWorkerRegistration[]>([]);
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
@@ -15,7 +15,7 @@ export default function DebugServiceWorker() {
       if ('serviceWorker' in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations();
         console.log('All service worker registrations:', regs);
-        setRegistrations(regs);
+        setRegistrations([...regs]);
       } else {
         setError('Service workers not supported');
       }
