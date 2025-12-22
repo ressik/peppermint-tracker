@@ -76,30 +76,131 @@ export default function FCMTestPage() {
     }
   };
 
-  const testDirectNotification = () => {
+  const testDirectNotification = async () => {
     addLog('Testing direct notification...');
+
+    // First check permission
+    addLog(`Current permission: ${Notification.permission}`);
+
+    if (Notification.permission !== 'granted') {
+      addLog('⚠️ Permission not granted. Requesting...');
+      const permission = await Notification.requestPermission();
+      addLog(`Permission result: ${permission}`);
+
+      if (permission !== 'granted') {
+        addLog('❌ Permission denied. Cannot show notifications.');
+        return;
+      }
+    }
+
     try {
-      new Notification('Direct Test', {
+      addLog('Creating notification...');
+      const notification = new Notification('Direct Test', {
         body: 'If you see this, basic notifications work!',
         icon: '/icon-192.png',
+        tag: 'test-direct',
+        requireInteraction: false,
       });
-      addLog('✅ Direct notification sent');
+
+      addLog('✅ Notification object created');
+
+      notification.onclick = () => {
+        addLog('✅ Notification was clicked!');
+      };
+
+      notification.onerror = (error) => {
+        addLog(`❌ Notification error: ${error}`);
+      };
+
+      notification.onshow = () => {
+        addLog('✅ Notification shown!');
+      };
+
+      notification.onclose = () => {
+        addLog('ℹ️ Notification closed');
+      };
+
     } catch (error) {
-      addLog(`❌ Error: ${error}`);
+      addLog(`❌ Error creating notification: ${error}`);
+      if (error instanceof Error) {
+        addLog(`Error details: ${error.message}`);
+        addLog(`Error stack: ${error.stack}`);
+      }
     }
   };
 
   const testSWNotification = async () => {
     addLog('Testing service worker notification...');
+
+    // Check permission first
+    if (Notification.permission !== 'granted') {
+      addLog('❌ Notification permission not granted');
+      return;
+    }
+
     try {
+      addLog('Getting service worker registration...');
       const registration = await navigator.serviceWorker.ready;
+      addLog(`✅ Service worker ready: ${registration.active?.scriptURL}`);
+
+      addLog('Calling registration.showNotification...');
       await registration.showNotification('SW Test', {
         body: 'If you see this, service worker notifications work!',
         icon: '/icon-192.png',
+        badge: '/icon-96.png',
+        tag: 'test-sw',
+        requireInteraction: false,
       });
-      addLog('✅ SW notification sent');
+
+      addLog('✅ SW notification API called successfully');
+      addLog('ℹ️ Check your notification area for the notification');
+
     } catch (error) {
       addLog(`❌ Error: ${error}`);
+      if (error instanceof Error) {
+        addLog(`Error details: ${error.message}`);
+      }
+    }
+  };
+
+  const checkBrowserSettings = () => {
+    addLog('=== Browser & Device Settings ===');
+
+    // Browser
+    addLog(`Browser: ${navigator.userAgent}`);
+
+    // HTTPS
+    addLog(`Protocol: ${window.location.protocol} ${window.location.protocol === 'https:' ? '✅' : '❌ Must be HTTPS!'}`);
+
+    // Notification API
+    addLog(`Notification API: ${'Notification' in window ? '✅ Supported' : '❌ Not supported'}`);
+
+    // Service Worker API
+    addLog(`Service Worker API: ${'serviceWorker' in navigator ? '✅ Supported' : '❌ Not supported'}`);
+
+    // Push API
+    addLog(`Push API: ${'PushManager' in window ? '✅ Supported' : '❌ Not supported'}`);
+
+    // Document visibility
+    addLog(`Page visible: ${document.visibilityState}`);
+
+    // Focus
+    addLog(`Page focused: ${document.hasFocus()}`);
+
+    // Check if running as PWA
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+    addLog(`Running as PWA: ${isPWA ? '✅ Yes' : 'ℹ️ No (running in browser)'}`);
+
+    addLog('=== Notification Permission Details ===');
+    addLog(`Permission: ${Notification.permission}`);
+
+    if (Notification.permission === 'granted') {
+      addLog('✅ Granted - notifications should work');
+    } else if (Notification.permission === 'denied') {
+      addLog('❌ DENIED - user blocked notifications');
+      addLog('   Fix: Go to site settings and enable notifications');
+    } else {
+      addLog('⚠️ DEFAULT - user has not been asked yet');
     }
   };
 
@@ -222,6 +323,12 @@ export default function FCMTestPage() {
               className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
             >
               Test SW Notification
+            </button>
+            <button
+              onClick={checkBrowserSettings}
+              className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+            >
+              Check Browser Settings
             </button>
             <button
               onClick={unregisterSW}
