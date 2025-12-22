@@ -16,20 +16,47 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 // Handle background messages
-messaging.onBackgroundMessage((payload) => {
+messaging.onBackgroundMessage(async (payload) => {
   console.log('Received background message:', payload);
 
   const notificationTitle = payload.notification?.title || 'Peppermint Tracker';
+  const notificationBody = payload.notification?.body || 'New update!';
+
+  // Create a unique tag based on title and body to prevent exact duplicates
+  // but allow different notifications to show
+  const tag = 'peppermint-' + hashString(notificationTitle + notificationBody);
+
+  // Check if a notification with this tag is already showing
+  const existingNotifications = await self.registration.getNotifications({ tag: tag });
+
+  // If notification already exists, don't show duplicate
+  if (existingNotifications.length > 0) {
+    console.log('Notification already showing, skipping duplicate');
+    return;
+  }
+
   const notificationOptions = {
-    body: payload.notification?.body || 'New update!',
+    body: notificationBody,
     icon: '/icon-192.png',
     badge: '/icon-96.png',
-    tag: 'peppermint-notification',
+    tag: tag,
     requireInteraction: false,
+    renotify: false, // Don't vibrate/sound for duplicate tags
   };
 
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });
+
+// Simple hash function to create unique tags
+function hashString(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return Math.abs(hash).toString(36);
+}
 
 // Handle notification clicks
 self.addEventListener('notificationclick', (event) => {
