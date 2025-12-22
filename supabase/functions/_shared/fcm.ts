@@ -1,15 +1,11 @@
 // Shared FCM utilities for sending notifications using FCM HTTP v1 API
 
-interface FCMNotification {
-  title: string;
-  body: string;
-}
-
 interface FCMMessage {
   token: string;
-  notification: FCMNotification;
   webpush?: {
     notification?: {
+      title?: string;
+      body?: string;
       icon?: string;
     };
     fcm_options?: {
@@ -35,14 +31,15 @@ export async function sendFCMNotification(
     const fcmUrl = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
 
     // Prepare message payload
+    // For web push, we send notification data in webpush section only
+    // This prevents FCM from auto-displaying notifications on Android
+    // and lets the service worker handle all notification display
     const message: FCMMessage = {
       token: token,
-      notification: {
-        title: title,
-        body: body,
-      },
       webpush: {
         notification: {
+          title: title,
+          body: body,
           icon: '/icon-192.png',
         },
         fcm_options: {
