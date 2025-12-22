@@ -15,6 +15,19 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
+// Create a broadcast channel to coordinate notifications across contexts (PWA + Browser)
+const notificationChannel = new BroadcastChannel('notification-channel');
+const pendingNotifications = new Set();
+
+// Listen for notifications from other contexts
+notificationChannel.onmessage = (event) => {
+  if (event.data.type === 'notification-shown') {
+    pendingNotifications.add(event.data.tag);
+    // Remove after 1 second to allow fresh notifications with same content later
+    setTimeout(() => pendingNotifications.delete(event.data.tag), 1000);
+  }
+};
+
 // Handle background messages
 messaging.onBackgroundMessage(async (payload) => {
   console.log('Received background message:', payload);
@@ -22,18 +35,18 @@ messaging.onBackgroundMessage(async (payload) => {
   const notificationTitle = payload.notification?.title || 'Peppermint Tracker';
   const notificationBody = payload.notification?.body || 'New update!';
 
-  // Create a unique tag based on title and body to prevent exact duplicates
-  // but allow different notifications to show
+  // Create a unique tag based on title and body
   const tag = 'peppermint-' + hashString(notificationTitle + notificationBody);
 
-  // Check if a notification with this tag is already showing
-  const existingNotifications = await self.registration.getNotifications({ tag: tag });
-
-  // If notification already exists, don't show duplicate
-  if (existingNotifications.length > 0) {
-    console.log('Notification already showing, skipping duplicate');
+  // Check if another context already showed this notification
+  if (pendingNotifications.has(tag)) {
+    console.log('Notification already shown by another context, skipping');
     return;
   }
+
+  // Mark this notification as being shown
+  pendingNotifications.add(tag);
+  notificationChannel.postMessage({ type: 'notification-shown', tag: tag });
 
   const notificationOptions = {
     body: notificationBody,
@@ -41,7 +54,7 @@ messaging.onBackgroundMessage(async (payload) => {
     badge: '/icon-96.png',
     tag: tag,
     requireInteraction: false,
-    renotify: false, // Don't vibrate/sound for duplicate tags
+    data: payload.data || {},
   };
 
   return self.registration.showNotification(notificationTitle, notificationOptions);

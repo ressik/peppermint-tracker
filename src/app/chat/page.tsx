@@ -79,20 +79,25 @@ export default function ChatPage() {
       onMessageListener((payload) => {
         console.log('Chat foreground message received:', payload);
 
-        // Show browser notification
-        if (Notification.permission === 'granted') {
-          const title = payload.notification?.title || 'New Chat Message';
-          const options = {
-            body: payload.notification?.body || 'You have a new message',
-            icon: '/icon-192.png',
-            badge: '/icon-96.png',
-          };
-          new Notification(title, options);
-        }
+        // Only show notification if this tab is visible and focused
+        // This prevents multiple tabs from showing duplicate notifications
+        if (document.visibilityState === 'visible' && document.hasFocus()) {
+          if (Notification.permission === 'granted') {
+            const title = payload.notification?.title || 'New Chat Message';
+            const options = {
+              body: payload.notification?.body || 'You have a new message',
+              icon: '/icon-192.png',
+              badge: '/icon-96.png',
+            };
+            new Notification(title, options);
+          }
 
-        // Vibrate
-        if ('vibrate' in navigator) {
-          navigator.vibrate(200);
+          // Vibrate
+          if ('vibrate' in navigator) {
+            navigator.vibrate(200);
+          }
+        } else {
+          console.log('Tab not visible/focused, skipping foreground notification (service worker will handle it)');
         }
       });
     }

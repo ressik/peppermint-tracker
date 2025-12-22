@@ -56,15 +56,20 @@ export default function Home() {
     onMessageListener((payload) => {
       console.log('Foreground message received:', payload);
 
-      // Show browser notification for foreground messages
-      if (Notification.permission === 'granted') {
-        const title = payload.notification?.title || 'Peppermint Tracker';
-        const options = {
-          body: payload.notification?.body || 'New update!',
-          icon: '/icon-192.png',
-          badge: '/icon-96.png',
-        };
-        new Notification(title, options);
+      // Only show notification if this tab is visible and focused
+      // This prevents multiple tabs from showing duplicate notifications
+      if (document.visibilityState === 'visible' && document.hasFocus()) {
+        if (Notification.permission === 'granted') {
+          const title = payload.notification?.title || 'Peppermint Tracker';
+          const options = {
+            body: payload.notification?.body || 'New update!',
+            icon: '/icon-192.png',
+            badge: '/icon-96.png',
+          };
+          new Notification(title, options);
+        }
+      } else {
+        console.log('Tab not visible/focused, skipping foreground notification (service worker will handle it)');
       }
 
       // Vibrate
