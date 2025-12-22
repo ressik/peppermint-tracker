@@ -3,13 +3,15 @@
 interface FCMNotification {
   title: string;
   body: string;
-  icon?: string;
 }
 
 interface FCMMessage {
   token: string;
   notification: FCMNotification;
   webpush?: {
+    notification?: {
+      icon?: string;
+    };
     fcm_options?: {
       link?: string;
     };
@@ -38,9 +40,11 @@ export async function sendFCMNotification(
       notification: {
         title: title,
         body: body,
-        icon: '/icon-192.png',
       },
       webpush: {
+        notification: {
+          icon: '/icon-192.png',
+        },
         fcm_options: {
           link: link,
         },
