@@ -118,6 +118,38 @@ export default function FCMTestPage() {
     }
   };
 
+  const fullReset = async () => {
+    addLog('Performing full reset...');
+
+    // Clear localStorage
+    localStorage.removeItem('fcm-token');
+    addLog('Cleared FCM token from localStorage');
+
+    // Unregister service workers
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        await registration.unregister();
+      }
+      addLog('Unregistered all service workers');
+    } catch (error) {
+      addLog(`Error unregistering: ${error}`);
+    }
+
+    // Clear cache
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      for (const name of cacheNames) {
+        await caches.delete(name);
+      }
+      addLog('Cleared all caches');
+    }
+
+    setToken('');
+    setSWStatus('❌ Reset complete');
+    addLog('✅ Full reset complete. Reload page to start fresh.');
+  };
+
   const copyToken = () => {
     navigator.clipboard.writeText(token);
     addLog('✅ Token copied to clipboard');
@@ -196,6 +228,12 @@ export default function FCMTestPage() {
               className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
             >
               Unregister Service Workers
+            </button>
+            <button
+              onClick={fullReset}
+              className="px-4 py-2 bg-red-800 text-white rounded hover:bg-red-900"
+            >
+              Full Reset (Clear Everything)
             </button>
             <button
               onClick={checkStatus}
