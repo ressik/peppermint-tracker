@@ -623,7 +623,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-white/90 text-sm font-medium">{c.name}</span>
                             <span className="text-white/40 text-xs">
-                              {new Date(c.createdAt).toLocaleDateString()}
+                              {new Date(c.createdAt).toLocaleDateString()} at {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
                           <p className="text-white/70 text-sm">{c.comment}</p>
