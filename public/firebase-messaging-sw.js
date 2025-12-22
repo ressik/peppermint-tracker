@@ -1,42 +1,76 @@
 // Firebase Cloud Messaging Service Worker
+console.log('[Service Worker] Loading firebase-messaging-sw.js');
+
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
 
-// Initialize Firebase in the service worker
-firebase.initializeApp({
-  apiKey: "AIzaSyA5AZ3azcQOijeG1ZdARgTJC5XzeaXaQNg",
-  authDomain: "peppermintpals.firebaseapp.com",
-  projectId: "peppermintpals",
-  storageBucket: "peppermintpals.firebasestorage.app",
-  messagingSenderId: "374454297190",
-  appId: "1:374454297190:web:2cf706b02b981ea28c83a7",
-  measurementId: "G-37NBC8JGRV"
-});
+// Initialize Firebase only if not already initialized
+if (!firebase.apps.length) {
+  console.log('[Service Worker] Initializing Firebase');
+  firebase.initializeApp({
+    apiKey: "AIzaSyA5AZ3azcQOijeG1ZdARgTJC5XzeaXaQNg",
+    authDomain: "peppermintpals.firebaseapp.com",
+    projectId: "peppermintpals",
+    storageBucket: "peppermintpals.firebasestorage.app",
+    messagingSenderId: "374454297190",
+    appId: "1:374454297190:web:2cf706b02b981ea28c83a7",
+    measurementId: "G-37NBC8JGRV"
+  });
+} else {
+  console.log('[Service Worker] Firebase already initialized');
+}
 
 const messaging = firebase.messaging();
+console.log('[Service Worker] Firebase messaging instance created');
 
-// Handle background messages (only fires when app is not in foreground)
-messaging.onBackgroundMessage(async (payload) => {
-  console.log('[Service Worker] Received background message:', payload);
+// Track if we've already shown a notification to prevent duplicates
+let lastNotificationTime = 0;
+let lastNotificationHash = '';
+let handlerRegistered = false;
 
-  const notificationTitle = payload.notification?.title || 'Peppermint Tracker';
-  const notificationBody = payload.notification?.body || 'New update!';
+// Handle background messages
+// This is the ONLY place we should show notifications
+if (!handlerRegistered) {
+  console.log('[Service Worker] Registering onBackgroundMessage handler');
+  handlerRegistered = true;
 
-  // Create a unique tag based on title and body
-  const tag = 'peppermint-' + hashString(notificationTitle + notificationBody);
+  messaging.onBackgroundMessage((payload) => {
+    console.log('[Service Worker] onBackgroundMessage called:', payload);
 
-  const notificationOptions = {
-    body: notificationBody,
-    icon: '/icon-192.png',
-    badge: '/icon-96.png',
-    tag: tag,
-    requireInteraction: false,
-    data: payload.data || {},
-  };
+    const notificationTitle = payload.notification?.title || payload.data?.title || 'Peppermint Tracker';
+    const notificationBody = payload.notification?.body || payload.data?.body || 'New update!';
 
-  console.log('[Service Worker] Showing notification:', notificationTitle);
-  return self.registration.showNotification(notificationTitle, notificationOptions);
-});
+    // Create a hash of the notification to detect duplicates
+    const notificationHash = hashString(notificationTitle + notificationBody);
+    const currentTime = Date.now();
+
+    // If we just showed this exact notification within the last second, skip it
+    if (notificationHash === lastNotificationHash && (currentTime - lastNotificationTime) < 1000) {
+      console.log('[Service Worker] Duplicate notification detected, skipping');
+      return Promise.resolve();
+    }
+
+    lastNotificationHash = notificationHash;
+    lastNotificationTime = currentTime;
+
+    const tag = 'peppermint-' + notificationHash;
+
+    const notificationOptions = {
+      body: notificationBody,
+      icon: '/icon-192.png',
+      badge: '/icon-96.png',
+      tag: tag,
+      requireInteraction: false,
+      data: payload.data || {},
+      renotify: false,
+    };
+
+    console.log('[Service Worker] Showing notification:', notificationTitle, 'with tag:', tag);
+    return self.registration.showNotification(notificationTitle, notificationOptions);
+  });
+} else {
+  console.log('[Service Worker] Handler already registered, skipping');
+}
 
 // Simple hash function to create unique tags
 function hashString(str) {
