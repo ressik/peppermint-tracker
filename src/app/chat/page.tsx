@@ -77,7 +77,8 @@ export default function ChatPage() {
 
       // Listen for foreground messages
       onMessageListener((payload) => {
-        console.log('Chat foreground message received:', payload);
+        console.log('[Chat] Foreground message received:', payload);
+        console.log('[Chat] Document visible:', document.visibilityState, 'focused:', document.hasFocus());
 
         // Only show notification if this tab is visible and focused
         // This prevents multiple tabs from showing duplicate notifications
@@ -89,6 +90,7 @@ export default function ChatPage() {
               icon: '/icon-192.png',
               badge: '/icon-96.png',
             };
+            console.log('[Chat] Showing foreground notification:', title);
             new Notification(title, options);
           }
 
@@ -97,7 +99,7 @@ export default function ChatPage() {
             navigator.vibrate(200);
           }
         } else {
-          console.log('Tab not visible/focused, skipping foreground notification (service worker will handle it)');
+          console.log('[Chat] Tab not visible/focused, skipping foreground notification (service worker will handle it)');
         }
       });
     }

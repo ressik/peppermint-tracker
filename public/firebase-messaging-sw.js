@@ -15,38 +15,15 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Create a broadcast channel to coordinate notifications across contexts (PWA + Browser)
-const notificationChannel = new BroadcastChannel('notification-channel');
-const pendingNotifications = new Set();
-
-// Listen for notifications from other contexts
-notificationChannel.onmessage = (event) => {
-  if (event.data.type === 'notification-shown') {
-    pendingNotifications.add(event.data.tag);
-    // Remove after 1 second to allow fresh notifications with same content later
-    setTimeout(() => pendingNotifications.delete(event.data.tag), 1000);
-  }
-};
-
-// Handle background messages
+// Handle background messages (only fires when app is not in foreground)
 messaging.onBackgroundMessage(async (payload) => {
-  console.log('Received background message:', payload);
+  console.log('[Service Worker] Received background message:', payload);
 
   const notificationTitle = payload.notification?.title || 'Peppermint Tracker';
   const notificationBody = payload.notification?.body || 'New update!';
 
   // Create a unique tag based on title and body
   const tag = 'peppermint-' + hashString(notificationTitle + notificationBody);
-
-  // Check if another context already showed this notification
-  if (pendingNotifications.has(tag)) {
-    console.log('Notification already shown by another context, skipping');
-    return;
-  }
-
-  // Mark this notification as being shown
-  pendingNotifications.add(tag);
-  notificationChannel.postMessage({ type: 'notification-shown', tag: tag });
 
   const notificationOptions = {
     body: notificationBody,
@@ -57,6 +34,7 @@ messaging.onBackgroundMessage(async (payload) => {
     data: payload.data || {},
   };
 
+  console.log('[Service Worker] Showing notification:', notificationTitle);
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });
 

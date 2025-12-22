@@ -54,7 +54,8 @@ export default function Home() {
 
     // Listen for foreground messages
     onMessageListener((payload) => {
-      console.log('Foreground message received:', payload);
+      console.log('[Homepage] Foreground message received:', payload);
+      console.log('[Homepage] Document visible:', document.visibilityState, 'focused:', document.hasFocus());
 
       // Only show notification if this tab is visible and focused
       // This prevents multiple tabs from showing duplicate notifications
@@ -66,10 +67,11 @@ export default function Home() {
             icon: '/icon-192.png',
             badge: '/icon-96.png',
           };
+          console.log('[Homepage] Showing foreground notification:', title);
           new Notification(title, options);
         }
       } else {
-        console.log('Tab not visible/focused, skipping foreground notification (service worker will handle it)');
+        console.log('[Homepage] Tab not visible/focused, skipping foreground notification (service worker will handle it)');
       }
 
       // Vibrate
