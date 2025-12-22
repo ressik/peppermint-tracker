@@ -95,6 +95,15 @@ export default function RulesPage() {
               7
             </span>
             <div className="flex-1 pt-1">
+              <p>No trespassing on anyone else's property! Stick to the sidewalks and the property of those holding Peppermint. Also, don't walk around looking suspicious! It may scare neighbors who aren't playing. </p>
+            </div>
+          </li>
+
+          <li className="flex gap-4">
+            <span className="flex-shrink-0 w-8 h-8 rounded-full bg-[#c41e3a] flex items-center justify-center text-white text-sm font-medium">
+              7
+            </span>
+            <div className="flex-1 pt-1">
               <p>Winner must send Paul and Tiffany photographic proof at noon on January 1st.</p>
             </div>
           </li>
