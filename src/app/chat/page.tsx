@@ -11,6 +11,11 @@ interface Message {
   name: string;
   message: string;
   createdAt: string;
+  replyTo?: string | null;
+  replyToMessage?: {
+    name: string;
+    message: string;
+  } | null;
 }
 
 export default function ChatPage() {
@@ -24,6 +29,7 @@ export default function ChatPage() {
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
   const [showReactionDetailsModal, setShowReactionDetailsModal] = useState<{ emoji: string; users: string[] } | null>(null);
+  const [replyingTo, setReplyingTo] = useState<Message | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const AVAILABLE_EMOJIS = ['👍', '❤️', '😂', '😭'];
@@ -120,12 +126,22 @@ export default function ChatPage() {
       if (error) {
         console.error('Error fetching messages:', error);
       } else {
+        // Create a map of messages for easy lookup
+        const messagesMap = new Map(data.map((m) => [m.id, m]));
+
         setMessages(
           data.map((m) => ({
             id: m.id,
             name: m.name,
             message: m.message,
             createdAt: m.created_at,
+            replyTo: m.reply_to,
+            replyToMessage: m.reply_to && messagesMap.get(m.reply_to)
+              ? {
+                  name: messagesMap.get(m.reply_to).name,
+                  message: messagesMap.get(m.reply_to).message,
+                }
+              : null,
           }))
         );
       }
@@ -237,12 +253,14 @@ export default function ChatPage() {
     const { error } = await supabase.from('messages').insert({
       name: userName,
       message: messageText.trim(),
+      reply_to: replyingTo?.id || null,
     });
 
     if (error) {
       console.error('Error sending message:', error);
     } else {
       setMessageText('');
+      setReplyingTo(null);
     }
   };
 
@@ -575,6 +593,15 @@ export default function ChatPage() {
                       {msg.name !== userName && (
                         <p className="text-xs font-medium mb-1 opacity-80">{msg.name}</p>
                       )}
+
+                      {/* Show replied-to message if exists */}
+                      {msg.replyToMessage && (
+                        <div className="bg-black/20 rounded px-2 py-1.5 mb-2 border-l-2 border-white/30">
+                          <p className="text-xs opacity-70 font-medium">{msg.replyToMessage.name}</p>
+                          <p className="text-xs opacity-60 line-clamp-1">{msg.replyToMessage.message}</p>
+                        </div>
+                      )}
+
                       <p className="text-sm break-words">{renderMessageWithLinks(msg.message)}</p>
                       <p className="text-xs opacity-60 mt-1">
                         {new Date(msg.createdAt).toLocaleTimeString([], {
@@ -583,14 +610,25 @@ export default function ChatPage() {
                         })}
                       </p>
 
-                      {/* Add Reaction Button */}
-                      <button
-                        onClick={() => setShowReactionPicker(showReactionPicker === msg.id ? null : msg.id)}
-                        className="absolute bottom-2 right-2 w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-sm transition-all"
-                        title="Add reaction"
-                      >
-                        +
-                      </button>
+                      {/* Action Buttons */}
+                      <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                        {/* Reply Button */}
+                        <button
+                          onClick={() => setReplyingTo(msg)}
+                          className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-xs transition-all"
+                          title="Reply"
+                        >
+                          ↩
+                        </button>
+                        {/* Add Reaction Button */}
+                        <button
+                          onClick={() => setShowReactionPicker(showReactionPicker === msg.id ? null : msg.id)}
+                          className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-sm transition-all"
+                          title="Add reaction"
+                        >
+                          +
+                        </button>
+                      </div>
                     </div>
 
                     {/* Reaction Picker */}
@@ -654,21 +692,41 @@ export default function ChatPage() {
       </div>
 
       {/* Message Input */}
-      <form onSubmit={handleSendMessage} className="flex gap-2">
-        <textarea
-          value={messageText}
-          onChange={(e) => setMessageText(e.target.value)}
-          placeholder="Type a message..."
-          rows={3}
-          className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffd700] resize-none"
-        />
-        <button
-          type="submit"
-          disabled={!messageText.trim()}
-          className="px-6 py-3 text-sm font-medium text-white bg-[#c41e3a] rounded-lg hover:bg-[#a31830] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Send
-        </button>
+      <form onSubmit={handleSendMessage} className="flex flex-col gap-2">
+        {/* Reply Preview */}
+        {replyingTo && (
+          <div className="bg-white/10 rounded-lg p-3 border-l-2 border-[#c41e3a] flex items-start justify-between">
+            <div className="flex-1">
+              <p className="text-xs text-white/70 mb-1">Replying to {replyingTo.name}</p>
+              <p className="text-sm text-white/60 line-clamp-1">{replyingTo.message}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setReplyingTo(null)}
+              className="text-white/60 hover:text-white ml-2"
+              title="Cancel reply"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <textarea
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            placeholder={replyingTo ? `Reply to ${replyingTo.name}...` : "Type a message..."}
+            rows={3}
+            className="flex-1 px-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/40 focus:outline-none focus:border-[#ffd700] resize-none"
+          />
+          <button
+            type="submit"
+            disabled={!messageText.trim()}
+            className="px-6 py-3 text-sm font-medium text-white bg-[#c41e3a] rounded-lg hover:bg-[#a31830] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Send
+          </button>
+        </div>
       </form>
 
       {/* Reaction Details Modal */}
