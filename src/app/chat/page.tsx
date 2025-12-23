@@ -162,22 +162,36 @@ export default function ChatPage() {
           table: 'messages',
         },
         (payload) => {
-          const newMessage: Message = {
-            id: payload.new.id,
-            name: payload.new.name,
-            message: payload.new.message,
-            createdAt: payload.new.created_at,
-          };
-
-          console.log('New message received:', newMessage);
+          console.log('New message received:', payload.new);
           console.log('Current userName:', userName);
           console.log('Notifications enabled:', notificationsEnabled);
           console.log('Notification permission:', Notification.permission);
 
-          setMessages((prev) => [...prev, newMessage]);
+          setMessages((prev) => {
+            // Look up the replied-to message if it exists
+            const replyToMessage = payload.new.reply_to
+              ? prev.find((m) => m.id === payload.new.reply_to)
+              : null;
+
+            const newMessage: Message = {
+              id: payload.new.id,
+              name: payload.new.name,
+              message: payload.new.message,
+              createdAt: payload.new.created_at,
+              replyTo: payload.new.reply_to,
+              replyToMessage: replyToMessage
+                ? {
+                    name: replyToMessage.name,
+                    message: replyToMessage.message,
+                  }
+                : null,
+            };
+
+            return [...prev, newMessage];
+          });
 
           // Show notification for messages from others
-          if (newMessage.name !== userName) {
+          if (payload.new.name !== userName) {
             console.log('Message is from someone else, attempting notification...');
 
             // Vibrate on mobile
@@ -189,8 +203,8 @@ export default function ChatPage() {
               if (Notification.permission === 'granted') {
                 console.log('Showing notification');
                 try {
-                  const notification = new Notification(`New message from ${newMessage.name}`, {
-                    body: newMessage.message,
+                  const notification = new Notification(`New message from ${payload.new.name}`, {
+                    body: payload.new.message,
                     icon: '/favicon.ico',
                     badge: '/favicon.ico',
                     tag: 'peppermint-chat',
