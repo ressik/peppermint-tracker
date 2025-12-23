@@ -11,12 +11,32 @@ export default function RulesPage() {
         <h1 className="text-4xl font-light text-white mb-8">
           Rules
         </h1>
-        <Link
-          href="/"
-          className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
-        >
-          Gallery
-        </Link>
+        <div className="flex items-center justify-center gap-3">
+          <Link
+            href="/"
+            className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
+          >
+            Gallery
+          </Link>
+          <Link
+            href="/map"
+            className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
+          >
+            Timeline
+          </Link>
+          <Link
+            href="/leaderboard"
+            className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
+          >
+            Leaderboard
+          </Link>
+          <Link
+            href="/chat"
+            className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
+          >
+            Chat
+          </Link>
+        </div>
       </div>
 
       {/* Rules */}
