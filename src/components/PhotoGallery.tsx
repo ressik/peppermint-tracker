@@ -19,11 +19,11 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
   const [submitting, setSubmitting] = useState(false);
   const [reactions, setReactions] = useState<PhotoReaction[]>([]);
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
-  const [showReactionDetails, setShowReactionDetails] = useState<string | null>(null);
+  const [showReactionDetailsModal, setShowReactionDetailsModal] = useState<{ emoji: string; users: string[] } | null>(null);
   const [userName, setUserName] = useState('');
   const [commentReactions, setCommentReactions] = useState<CommentReaction[]>([]);
   const [showCommentReactionPicker, setShowCommentReactionPicker] = useState<string | null>(null);
-  const [showCommentReactionDetails, setShowCommentReactionDetails] = useState<string | null>(null);
+  const [showCommentReactionDetailsModal, setShowCommentReactionDetailsModal] = useState<{ emoji: string; users: string[] } | null>(null);
 
   const AVAILABLE_EMOJIS = ['👍', '❤️', '😂', '😭'];
 
@@ -451,22 +451,34 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                   {Object.entries(getReactionSummary(photo.id)).map(([emoji, { count, users }]) => {
                     const userReacted = users.includes(userName);
                     return (
-                      <button
+                      <div
                         key={emoji}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleAddReaction(photo.id, emoji);
-                        }}
-                        className={`relative inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm transition-all hover:scale-110 ${
+                        className={`inline-flex items-center gap-0.5 rounded-full text-sm transition-all ${
                           userReacted
                             ? 'bg-[#c41e3a]/80 text-white'
-                            : 'bg-white/10 text-white/80 hover:bg-white/20'
+                            : 'bg-white/10 text-white/80'
                         }`}
-                        title={users.join(', ')}
                       >
-                        <span className="text-base">{emoji}</span>
-                        <span className="text-xs">{count}</span>
-                      </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddReaction(photo.id, emoji);
+                          }}
+                          className="px-2 py-1 hover:scale-110 transition-all"
+                        >
+                          <span className="text-base">{emoji}</span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowReactionDetailsModal({ emoji, users });
+                          }}
+                          className="px-1.5 py-1 hover:bg-white/10 rounded-r-full transition-all"
+                          title="See who reacted"
+                        >
+                          <span className="text-xs">{count}</span>
+                        </button>
+                      </div>
                     );
                   })}
                   <div className="relative">
@@ -559,25 +571,28 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                   {Object.entries(getReactionSummary(selectedPhoto.id)).map(([emoji, { count, users }]) => {
                     const userReacted = users.includes(userName);
                     return (
-                      <button
+                      <div
                         key={emoji}
-                        onClick={() => handleAddReaction(selectedPhoto.id, emoji)}
-                        onMouseEnter={() => setShowReactionDetails(`${selectedPhoto.id}-${emoji}`)}
-                        onMouseLeave={() => setShowReactionDetails(null)}
-                        className={`relative inline-flex items-center gap-1.5 px-3 py-2 rounded-full text-base transition-all hover:scale-105 ${
+                        className={`inline-flex items-center gap-0.5 rounded-full text-base transition-all ${
                           userReacted
                             ? 'bg-[#c41e3a]/80 text-white'
-                            : 'bg-white/10 text-white/80 hover:bg-white/20'
+                            : 'bg-white/10 text-white/80'
                         }`}
                       >
-                        <span className="text-xl">{emoji}</span>
-                        <span className="text-sm">{count}</span>
-                        {showReactionDetails === `${selectedPhoto.id}-${emoji}` && (
-                          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-black/90 text-white text-xs rounded px-2 py-1 whitespace-nowrap pointer-events-none">
-                            {users.join(', ')}
-                          </div>
-                        )}
-                      </button>
+                        <button
+                          onClick={() => handleAddReaction(selectedPhoto.id, emoji)}
+                          className="px-3 py-2 hover:scale-110 transition-all"
+                        >
+                          <span className="text-xl">{emoji}</span>
+                        </button>
+                        <button
+                          onClick={() => setShowReactionDetailsModal({ emoji, users })}
+                          className="px-2 py-2 hover:bg-white/10 rounded-r-full transition-all"
+                          title="See who reacted"
+                        >
+                          <span className="text-sm">{count}</span>
+                        </button>
+                      </div>
                     );
                   })}
                   <div className="relative">
@@ -662,28 +677,28 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                               {Object.entries(commentReactionSummary).map(([emoji, { count, users }]) => {
                                 const userReacted = users.includes(userName);
                                 return (
-                                  <button
+                                  <div
                                     key={emoji}
-                                    onClick={() => handleAddCommentReaction(c.id, emoji)}
-                                    onMouseEnter={() => setShowCommentReactionDetails(`${c.id}-${emoji}`)}
-                                    onMouseLeave={() => setShowCommentReactionDetails(null)}
-                                    className={`relative px-2.5 py-1.5 rounded-full text-sm flex items-center gap-1 transition-all ${
+                                    className={`inline-flex items-center gap-0.5 rounded-full text-sm transition-all ${
                                       userReacted
                                         ? 'bg-[#c41e3a]/80 text-white'
-                                        : 'bg-white/10 text-white/80 hover:bg-white/20'
+                                        : 'bg-white/10 text-white/80'
                                     }`}
-                                    title={users.join(', ')}
                                   >
-                                    <span className="text-base">{emoji}</span>
-                                    <span className="text-sm">{count}</span>
-
-                                    {/* Reaction Details Tooltip */}
-                                    {showCommentReactionDetails === `${c.id}-${emoji}` && (
-                                      <div className="absolute bottom-full left-0 mb-1 bg-black/90 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                                        {users.join(', ')}
-                                      </div>
-                                    )}
-                                  </button>
+                                    <button
+                                      onClick={() => handleAddCommentReaction(c.id, emoji)}
+                                      className="px-2.5 py-1.5 hover:scale-110 transition-all"
+                                    >
+                                      <span className="text-base">{emoji}</span>
+                                    </button>
+                                    <button
+                                      onClick={() => setShowCommentReactionDetailsModal({ emoji, users })}
+                                      className="px-2 py-1.5 hover:bg-white/10 rounded-r-full transition-all"
+                                      title="See who reacted"
+                                    >
+                                      <span className="text-sm">{count}</span>
+                                    </button>
+                                  </div>
                                 );
                               })}
                             </div>
@@ -728,6 +743,50 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
               >
                 Close
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reaction Details Modal */}
+      {(showReactionDetailsModal || showCommentReactionDetailsModal) && (
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+          onClick={() => {
+            setShowReactionDetailsModal(null);
+            setShowCommentReactionDetailsModal(null);
+          }}
+        >
+          <div
+            className="bg-[#0f7c3a] rounded-2xl p-6 max-w-sm w-full shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                <span className="text-2xl">
+                  {showReactionDetailsModal?.emoji || showCommentReactionDetailsModal?.emoji}
+                </span>
+                <span>Reactions</span>
+              </h3>
+              <button
+                onClick={() => {
+                  setShowReactionDetailsModal(null);
+                  setShowCommentReactionDetailsModal(null);
+                }}
+                className="text-white/60 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {(showReactionDetailsModal?.users || showCommentReactionDetailsModal?.users || []).map((user, index) => (
+                <div
+                  key={index}
+                  className="bg-white/10 rounded-lg px-4 py-2 text-white/90"
+                >
+                  {user}
+                </div>
+              ))}
             </div>
           </div>
         </div>

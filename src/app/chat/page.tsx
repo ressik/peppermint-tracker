@@ -23,7 +23,7 @@ export default function ChatPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [reactions, setReactions] = useState<Reaction[]>([]);
   const [showReactionPicker, setShowReactionPicker] = useState<string | null>(null);
-  const [showReactionDetails, setShowReactionDetails] = useState<string | null>(null);
+  const [showReactionDetailsModal, setShowReactionDetailsModal] = useState<{ emoji: string; users: string[] } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const AVAILABLE_EMOJIS = ['👍', '❤️', '😂', '😭'];
@@ -617,28 +617,28 @@ export default function ChatPage() {
                         {Object.entries(reactionSummary).map(([emoji, { count, users }]) => {
                           const userReacted = users.includes(userName);
                           return (
-                            <button
+                            <div
                               key={emoji}
-                              onClick={() => handleAddReaction(msg.id, emoji)}
-                              onMouseEnter={() => setShowReactionDetails(`${msg.id}-${emoji}`)}
-                              onMouseLeave={() => setShowReactionDetails(null)}
-                              className={`relative px-2.5 py-1.5 rounded-full text-sm flex items-center gap-1 transition-all ${
+                              className={`inline-flex items-center gap-0.5 rounded-full text-sm transition-all ${
                                 userReacted
                                   ? 'bg-[#c41e3a]/80 text-white'
-                                  : 'bg-white/10 text-white/80 hover:bg-white/20'
+                                  : 'bg-white/10 text-white/80'
                               }`}
-                              title={users.join(', ')}
                             >
-                              <span className="text-base">{emoji}</span>
-                              <span className="text-sm">{count}</span>
-
-                              {/* Reaction Details Tooltip */}
-                              {showReactionDetails === `${msg.id}-${emoji}` && (
-                                <div className="absolute bottom-full left-0 mb-1 bg-black/90 text-white text-xs rounded px-2 py-1 whitespace-nowrap z-10">
-                                  {users.join(', ')}
-                                </div>
-                              )}
-                            </button>
+                              <button
+                                onClick={() => handleAddReaction(msg.id, emoji)}
+                                className="px-2.5 py-1.5 hover:scale-110 transition-all"
+                              >
+                                <span className="text-base">{emoji}</span>
+                              </button>
+                              <button
+                                onClick={() => setShowReactionDetailsModal({ emoji, users })}
+                                className="px-2 py-1.5 hover:bg-white/10 rounded-r-full transition-all"
+                                title="See who reacted"
+                              >
+                                <span className="text-sm">{count}</span>
+                              </button>
+                            </div>
                           );
                         })}
                       </div>
@@ -670,6 +670,42 @@ export default function ChatPage() {
           Send
         </button>
       </form>
+
+      {/* Reaction Details Modal */}
+      {showReactionDetailsModal && (
+        <div
+          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
+          onClick={() => setShowReactionDetailsModal(null)}
+        >
+          <div
+            className="bg-[#0f7c3a] rounded-2xl p-6 max-w-sm w-full shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                <span className="text-2xl">{showReactionDetailsModal.emoji}</span>
+                <span>Reactions</span>
+              </h3>
+              <button
+                onClick={() => setShowReactionDetailsModal(null)}
+                className="text-white/60 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {showReactionDetailsModal.users.map((user, index) => (
+                <div
+                  key={index}
+                  className="bg-white/10 rounded-lg px-4 py-2 text-white/90"
+                >
+                  {user}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
