@@ -3,7 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Snowfall from "@/components/Snowfall";
 import AnnouncementModal from "@/components/AnnouncementModal";
-import Navigation from "@/components/Navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,7 +49,6 @@ export default function RootLayout({
       >
         <Snowfall />
         <AnnouncementModal />
-        <Navigation />
         <main className="relative z-10">
           {children}
         </main>

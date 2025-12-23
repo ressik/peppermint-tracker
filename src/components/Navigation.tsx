@@ -22,28 +22,18 @@ export default function Navigation() {
               href="/"
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 pathname === '/'
-                  ? 'bg-[#c41e3a] text-white'
-                  : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                  ? 'bg-white/10 text-white'
+                  : 'text-white/50 hover:text-white/80'
               }`}
             >
               Gallery
             </Link>
             <Link
-              href="/map"
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                pathname === '/map'
-                  ? 'bg-[#c41e3a] text-white'
-                  : 'text-white/50 hover:text-white/80 hover:bg-white/5'
-              }`}
-            >
-              Timeline
-            </Link>
-            <Link
               href="/leaderboard"
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 pathname === '/leaderboard'
-                  ? 'bg-[#c41e3a] text-white'
-                  : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                  ? 'bg-white/10 text-white'
+                  : 'text-white/50 hover:text-white/80'
               }`}
             >
               Leaderboard
@@ -52,21 +42,11 @@ export default function Navigation() {
               href="/rules"
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                 pathname === '/rules'
-                  ? 'bg-[#c41e3a] text-white'
-                  : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                  ? 'bg-white/10 text-white'
+                  : 'text-white/50 hover:text-white/80'
               }`}
             >
               Rules
-            </Link>
-            <Link
-              href="/chat"
-              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                pathname === '/chat'
-                  ? 'bg-[#c41e3a] text-white'
-                  : 'text-white/50 hover:text-white/80 hover:bg-white/5'
-              }`}
-            >
-              Chat
             </Link>
           </div>
         </div>
