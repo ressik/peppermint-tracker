@@ -29,6 +29,11 @@ export interface Comment {
   name: string;
   comment: string;
   createdAt: string;
+  replyTo?: string | null;
+  replyToComment?: {
+    name: string;
+    comment: string;
+  } | null;
 }
 
 export interface Reaction {

@@ -24,6 +24,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
   const [commentReactions, setCommentReactions] = useState<CommentReaction[]>([]);
   const [showCommentReactionPicker, setShowCommentReactionPicker] = useState<string | null>(null);
   const [showCommentReactionDetailsModal, setShowCommentReactionDetailsModal] = useState<{ emoji: string; users: string[] } | null>(null);
+  const [replyingToComment, setReplyingToComment] = useState<Comment | null>(null);
 
   const AVAILABLE_EMOJIS = ['👍', '❤️', '😂', '😭'];
 
@@ -107,6 +108,9 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
     if (error) {
       console.error('Error fetching comments:', error);
     } else {
+      // Create a map of comments for easy lookup
+      const commentsMap = new Map(data.map((c) => [c.id, c]));
+
       setComments(
         data.map((c) => ({
           id: c.id,
@@ -114,6 +118,13 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
           name: c.name,
           comment: c.comment,
           createdAt: c.created_at,
+          replyTo: c.reply_to,
+          replyToComment: c.reply_to && commentsMap.get(c.reply_to)
+            ? {
+                name: commentsMap.get(c.reply_to).name,
+                comment: commentsMap.get(c.reply_to).comment,
+              }
+            : null,
         }))
       );
     }
@@ -129,6 +140,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
       photo_id: selectedPhoto.id,
       name: commentName.trim(),
       comment: commentText.trim(),
+      reply_to: replyingToComment?.id || null,
     });
 
     if (error) {
@@ -141,6 +153,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
 
       setCommentName('');
       setCommentText('');
+      setReplyingToComment(null);
       fetchComments(selectedPhoto.id);
       fetchCommentCounts();
     }
@@ -634,17 +647,35 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                       const hasCommentReactions = Object.keys(commentReactionSummary).length > 0;
 
                       return (
-                        <div key={c.id} className="bg-white/5 rounded-lg p-3 pr-10 relative">
+                        <div key={c.id} className="bg-white/5 rounded-lg p-3 pr-16 relative">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-white/90 text-sm font-medium">{c.name}</span>
                             <span className="text-white/40 text-xs">
                               {new Date(c.createdAt).toLocaleDateString()} at {new Date(c.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
+
+                          {/* Show replied-to comment if exists */}
+                          {c.replyToComment && (
+                            <div className="bg-black/20 rounded px-2 py-1.5 mb-2 border-l-2 border-white/30">
+                              <p className="text-xs opacity-70 font-medium">{c.replyToComment.name}</p>
+                              <p className="text-xs opacity-60 line-clamp-1">{c.replyToComment.comment}</p>
+                            </div>
+                          )}
+
                           <p className="text-white/70 text-sm">{c.comment}</p>
 
-                          {/* Add Reaction Button */}
-                          <div className="absolute bottom-2 right-2">
+                          {/* Action Buttons */}
+                          <div className="absolute bottom-2 right-2 flex items-center gap-1">
+                            {/* Reply Button */}
+                            <button
+                              onClick={() => setReplyingToComment(c)}
+                              className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-xs transition-all"
+                              title="Reply"
+                            >
+                              ↩
+                            </button>
+                            {/* Add Reaction Button */}
                             <button
                               onClick={() => setShowCommentReactionPicker(showCommentReactionPicker === c.id ? null : c.id)}
                               className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center text-sm transition-all"
@@ -711,6 +742,24 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
 
                 {/* Add Comment Form */}
                 <form onSubmit={handleSubmitComment} className="mt-4 space-y-3">
+                  {/* Reply Preview */}
+                  {replyingToComment && (
+                    <div className="bg-white/10 rounded-lg p-3 border-l-2 border-[#c41e3a] flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="text-xs text-white/70 mb-1">Replying to {replyingToComment.name}</p>
+                        <p className="text-sm text-white/60 line-clamp-1">{replyingToComment.comment}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setReplyingToComment(null)}
+                        className="text-white/60 hover:text-white ml-2"
+                        title="Cancel reply"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+
                   <input
                     type="text"
                     placeholder="Your name"
@@ -720,7 +769,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                     required
                   />
                   <textarea
-                    placeholder="Leave a comment..."
+                    placeholder={replyingToComment ? `Reply to ${replyingToComment.name}...` : "Leave a comment..."}
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     rows={2}
