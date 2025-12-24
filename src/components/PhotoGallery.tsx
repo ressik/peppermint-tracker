@@ -28,6 +28,31 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
 
   const AVAILABLE_EMOJIS = ['👍', '❤️', '😂', '😭'];
 
+  // Helper function to convert URLs in text to clickable links
+  const linkifyText = (text: string) => {
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/g;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+      if (part.match(urlRegex)) {
+        const url = part.startsWith('http') ? part : `https://${part}`;
+        return (
+          <a
+            key={index}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300 underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
   // Fetch comment counts for all photos on mount
   useEffect(() => {
     fetchCommentCounts();
@@ -659,11 +684,11 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                           {c.replyToComment && (
                             <div className="bg-black/20 rounded px-2 py-1.5 mb-2 border-l-2 border-white/30">
                               <p className="text-xs opacity-70 font-medium">{c.replyToComment.name}</p>
-                              <p className="text-xs opacity-60 line-clamp-1">{c.replyToComment.comment}</p>
+                              <p className="text-xs opacity-60 line-clamp-1">{linkifyText(c.replyToComment.comment)}</p>
                             </div>
                           )}
 
-                          <p className="text-white/70 text-sm">{c.comment}</p>
+                          <p className="text-white/70 text-sm">{linkifyText(c.comment)}</p>
 
                           {/* Action Buttons */}
                           <div className="absolute bottom-2 right-2 flex items-center gap-1">
@@ -747,7 +772,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
                     <div className="bg-white/10 rounded-lg p-3 border-l-2 border-[#c41e3a] flex items-start justify-between">
                       <div className="flex-1">
                         <p className="text-xs text-white/70 mb-1">Replying to {replyingToComment.name}</p>
-                        <p className="text-sm text-white/60 line-clamp-1">{replyingToComment.comment}</p>
+                        <p className="text-sm text-white/60 line-clamp-1">{linkifyText(replyingToComment.comment)}</p>
                       </div>
                       <button
                         type="button"
