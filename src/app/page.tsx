@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import PhotoGallery from '@/components/PhotoGallery';
 import UploadModal from '@/components/UploadModal';
@@ -8,11 +8,17 @@ import { Photo } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 import { getFCMToken, onMessageListener } from '@/lib/firebase';
 
+const PHOTOS_PER_PAGE = 9;
+
 export default function Home() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   // Request FCM notification permission on mount
   useEffect(() => {
@@ -143,33 +149,85 @@ export default function Home() {
     };
   }, []);
 
-  const fetchPhotos = async () => {
-    setIsLoading(true);
+  const fetchPhotos = async (pageNum: number = 0, append: boolean = false) => {
+    if (append) {
+      setIsLoadingMore(true);
+    } else {
+      setIsLoading(true);
+    }
+
+    const from = pageNum * PHOTOS_PER_PAGE;
+    const to = from + PHOTOS_PER_PAGE - 1;
+
     const { data, error } = await supabase
       .from('photos')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
     if (error) {
       console.error('Error fetching photos:', error);
     } else {
-      setPhotos(
-        data.map((photo) => ({
-          id: photo.id,
-          url: photo.url,
-          uploaderName: photo.uploader_name,
-          caption: photo.caption,
-          videoUrl: photo.video_url,
-          createdAt: photo.created_at,
-          address: photo.address,
-          latitude: photo.latitude,
-          longitude: photo.longitude,
-          isSteal: photo.is_steal,
-        }))
-      );
+      const newPhotos = data.map((photo) => ({
+        id: photo.id,
+        url: photo.url,
+        uploaderName: photo.uploader_name,
+        caption: photo.caption,
+        videoUrl: photo.video_url,
+        createdAt: photo.created_at,
+        address: photo.address,
+        latitude: photo.latitude,
+        longitude: photo.longitude,
+        isSteal: photo.is_steal,
+      }));
+
+      if (append) {
+        setPhotos((prev) => [...prev, ...newPhotos]);
+      } else {
+        setPhotos(newPhotos);
+      }
+
+      // Check if there are more photos to load
+      setHasMore(data.length === PHOTOS_PER_PAGE);
     }
-    setIsLoading(false);
+
+    if (append) {
+      setIsLoadingMore(false);
+    } else {
+      setIsLoading(false);
+    }
   };
+
+  const loadMore = useCallback(() => {
+    if (!isLoadingMore && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchPhotos(nextPage, true);
+    }
+  }, [page, isLoadingMore, hasMore]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMore, isLoadingMore, loadMore]);
 
   const handleUpload = async (data: {
     file: File | null;
@@ -261,8 +319,10 @@ export default function Home() {
       throw insertError;
     }
 
-    // Refresh photos
-    fetchPhotos();
+    // Refresh photos - reset to first page
+    setPage(0);
+    setHasMore(true);
+    fetchPhotos(0, false);
   };
 
   return (
@@ -322,7 +382,28 @@ export default function Home() {
             <p className="text-white/40 text-sm">Loading...</p>
           </div>
         ) : (
-          <PhotoGallery photos={photos} />
+          <>
+            <PhotoGallery photos={photos} />
+
+            {/* Loading more indicator */}
+            {isLoadingMore && (
+              <div className="text-center py-8">
+                <p className="text-white/40 text-sm">Loading more...</p>
+              </div>
+            )}
+
+            {/* Sentinel element for infinite scroll */}
+            {hasMore && !isLoadingMore && (
+              <div ref={observerTarget} className="h-10" />
+            )}
+
+            {/* No more posts indicator */}
+            {!hasMore && photos.length > 0 && (
+              <div className="text-center py-8">
+                <p className="text-white/30 text-sm">No more posts</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
