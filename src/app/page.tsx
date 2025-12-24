@@ -149,7 +149,7 @@ export default function Home() {
     };
   }, []);
 
-  const fetchPhotos = async (pageNum: number = 0, append: boolean = false) => {
+  const fetchPhotos = useCallback(async (pageNum: number = 0, append: boolean = false) => {
     if (append) {
       setIsLoadingMore(true);
     } else {
@@ -196,7 +196,7 @@ export default function Home() {
     } else {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const loadMore = useCallback(() => {
     if (!isLoadingMore && hasMore) {
@@ -204,7 +204,7 @@ export default function Home() {
       setPage(nextPage);
       fetchPhotos(nextPage, true);
     }
-  }, [page, isLoadingMore, hasMore]);
+  }, [page, isLoadingMore, hasMore, fetchPhotos]);
 
   // Infinite scroll observer
   useEffect(() => {
@@ -214,7 +214,10 @@ export default function Home() {
           loadMore();
         }
       },
-      { threshold: 0.1 }
+      {
+        threshold: 0.1,
+        rootMargin: '200px' // Trigger loading 200px before reaching the element
+      }
     );
 
     const currentTarget = observerTarget.current;
@@ -394,7 +397,7 @@ export default function Home() {
 
             {/* Sentinel element for infinite scroll */}
             {hasMore && !isLoadingMore && (
-              <div ref={observerTarget} className="h-10" />
+              <div ref={observerTarget} className="h-20 w-full" />
             )}
 
             {/* No more posts indicator */}
