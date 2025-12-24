@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import PhotoGallery from '@/components/PhotoGallery';
 import UploadModal from '@/components/UploadModal';
@@ -8,20 +8,11 @@ import { Photo } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 import { getFCMToken, onMessageListener } from '@/lib/firebase';
 
-const PHOTOS_PER_PAGE = 9;
-
 export default function Home() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(0);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const observerTarget = useRef<HTMLDivElement>(null);
-  const isLoadingRef = useRef(false);
-  const hasMoreRef = useRef(true);
-  const pageRef = useRef(0);
 
   // Request FCM notification permission on mount
   useEffect(() => {
@@ -152,97 +143,33 @@ export default function Home() {
     };
   }, []);
 
-  const fetchPhotos = useCallback(async (pageNum: number = 0, append: boolean = false) => {
-    if (append) {
-      setIsLoadingMore(true);
-      isLoadingRef.current = true;
-    } else {
-      setIsLoading(true);
-      isLoadingRef.current = true;
-    }
-
-    const from = pageNum * PHOTOS_PER_PAGE;
-    const to = from + PHOTOS_PER_PAGE - 1;
-
+  const fetchPhotos = async () => {
+    setIsLoading(true);
     const { data, error } = await supabase
       .from('photos')
       .select('*')
-      .order('created_at', { ascending: false })
-      .range(from, to);
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching photos:', error);
     } else {
-      const newPhotos = data.map((photo) => ({
-        id: photo.id,
-        url: photo.url,
-        uploaderName: photo.uploader_name,
-        caption: photo.caption,
-        videoUrl: photo.video_url,
-        createdAt: photo.created_at,
-        address: photo.address,
-        latitude: photo.latitude,
-        longitude: photo.longitude,
-        isSteal: photo.is_steal,
-      }));
-
-      if (append) {
-        setPhotos((prev) => [...prev, ...newPhotos]);
-      } else {
-        setPhotos(newPhotos);
-      }
-
-      // Check if there are more photos to load
-      const hasMorePhotos = data.length === PHOTOS_PER_PAGE;
-      setHasMore(hasMorePhotos);
-      hasMoreRef.current = hasMorePhotos;
+      setPhotos(
+        data.map((photo) => ({
+          id: photo.id,
+          url: photo.url,
+          uploaderName: photo.uploader_name,
+          caption: photo.caption,
+          videoUrl: photo.video_url,
+          createdAt: photo.created_at,
+          address: photo.address,
+          latitude: photo.latitude,
+          longitude: photo.longitude,
+          isSteal: photo.is_steal,
+        }))
+      );
     }
-
-    if (append) {
-      setIsLoadingMore(false);
-      isLoadingRef.current = false;
-    } else {
-      setIsLoading(false);
-      isLoadingRef.current = false;
-    }
-  }, []);
-
-  const loadMore = useCallback(() => {
-    if (isLoadingRef.current || !hasMoreRef.current) {
-      return;
-    }
-
-    const nextPage = pageRef.current + 1;
-    pageRef.current = nextPage;
-    setPage(nextPage);
-    fetchPhotos(nextPage, true);
-  }, [fetchPhotos]);
-
-  // Infinite scroll observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          loadMore();
-        }
-      },
-      {
-        threshold: 0.1,
-        rootMargin: '200px' // Trigger loading 200px before reaching the element
-      }
-    );
-
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      observer.observe(currentTarget);
-    }
-
-    return () => {
-      if (currentTarget) {
-        observer.unobserve(currentTarget);
-      }
-    };
-  }, [loadMore]);
+    setIsLoading(false);
+  };
 
   const handleUpload = async (data: {
     file: File | null;
@@ -334,12 +261,8 @@ export default function Home() {
       throw insertError;
     }
 
-    // Refresh photos - reset to first page
-    pageRef.current = 0;
-    hasMoreRef.current = true;
-    setPage(0);
-    setHasMore(true);
-    fetchPhotos(0, false);
+    // Refresh photos
+    fetchPhotos();
   };
 
   return (
@@ -399,28 +322,7 @@ export default function Home() {
             <p className="text-white/40 text-sm">Loading...</p>
           </div>
         ) : (
-          <>
-            <PhotoGallery photos={photos} />
-
-            {/* Loading more indicator */}
-            {isLoadingMore && (
-              <div className="text-center py-8">
-                <p className="text-white/40 text-sm">Loading more...</p>
-              </div>
-            )}
-
-            {/* Sentinel element for infinite scroll */}
-            {hasMore && !isLoadingMore && (
-              <div ref={observerTarget} className="h-20 w-full" />
-            )}
-
-            {/* No more posts indicator */}
-            {!hasMore && photos.length > 0 && (
-              <div className="text-center py-8">
-                <p className="text-white/30 text-sm">No more posts</p>
-              </div>
-            )}
-          </>
+          <PhotoGallery photos={photos} />
         )}
       </div>
 
