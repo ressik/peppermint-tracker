@@ -19,6 +19,9 @@ export default function Home() {
   const [page, setPage] = useState(0);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const observerTarget = useRef<HTMLDivElement>(null);
+  const isLoadingRef = useRef(false);
+  const hasMoreRef = useRef(true);
+  const pageRef = useRef(0);
 
   // Request FCM notification permission on mount
   useEffect(() => {
@@ -152,8 +155,10 @@ export default function Home() {
   const fetchPhotos = useCallback(async (pageNum: number = 0, append: boolean = false) => {
     if (append) {
       setIsLoadingMore(true);
+      isLoadingRef.current = true;
     } else {
       setIsLoading(true);
+      isLoadingRef.current = true;
     }
 
     const from = pageNum * PHOTOS_PER_PAGE;
@@ -188,29 +193,36 @@ export default function Home() {
       }
 
       // Check if there are more photos to load
-      setHasMore(data.length === PHOTOS_PER_PAGE);
+      const hasMorePhotos = data.length === PHOTOS_PER_PAGE;
+      setHasMore(hasMorePhotos);
+      hasMoreRef.current = hasMorePhotos;
     }
 
     if (append) {
       setIsLoadingMore(false);
+      isLoadingRef.current = false;
     } else {
       setIsLoading(false);
+      isLoadingRef.current = false;
     }
   }, []);
 
   const loadMore = useCallback(() => {
-    if (!isLoadingMore && hasMore) {
-      const nextPage = page + 1;
-      setPage(nextPage);
-      fetchPhotos(nextPage, true);
+    if (isLoadingRef.current || !hasMoreRef.current) {
+      return;
     }
-  }, [page, isLoadingMore, hasMore, fetchPhotos]);
+
+    const nextPage = pageRef.current + 1;
+    pageRef.current = nextPage;
+    setPage(nextPage);
+    fetchPhotos(nextPage, true);
+  }, [fetchPhotos]);
 
   // Infinite scroll observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+        if (entries[0].isIntersecting) {
           loadMore();
         }
       },
@@ -230,7 +242,7 @@ export default function Home() {
         observer.unobserve(currentTarget);
       }
     };
-  }, [hasMore, isLoadingMore, loadMore]);
+  }, [loadMore]);
 
   const handleUpload = async (data: {
     file: File | null;
@@ -323,6 +335,8 @@ export default function Home() {
     }
 
     // Refresh photos - reset to first page
+    pageRef.current = 0;
+    hasMoreRef.current = true;
     setPage(0);
     setHasMore(true);
     fetchPhotos(0, false);
