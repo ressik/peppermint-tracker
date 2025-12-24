@@ -228,17 +228,20 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
   };
 
   const handleAddReaction = async (photoId: string, emoji: string) => {
-    if (!userName) {
+    let currentUserName = userName;
+
+    if (!currentUserName) {
       const name = prompt('Please enter your name to react:');
-      if (!name) return;
-      setUserName(name);
+      if (!name || !name.trim()) return;
+      currentUserName = name.trim();
+      setUserName(currentUserName);
       if (typeof window !== 'undefined') {
-        localStorage.setItem('peppermint-chat-name', name);
+        localStorage.setItem('peppermint-chat-name', currentUserName);
       }
     }
 
     const existingReaction = reactions.find(
-      (r) => r.photoId === photoId && r.userName === (userName || '') && r.emoji === emoji
+      (r) => r.photoId === photoId && r.userName === currentUserName && r.emoji === emoji
     );
 
     if (existingReaction) {
@@ -255,7 +258,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
       // Add reaction
       const { error } = await supabase.from('photo_reactions').insert({
         photo_id: photoId,
-        user_name: userName || '',
+        user_name: currentUserName,
         emoji,
       });
 
@@ -325,17 +328,20 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
   };
 
   const handleAddCommentReaction = async (commentId: string, emoji: string) => {
-    if (!userName) {
+    let currentUserName = userName;
+
+    if (!currentUserName) {
       const name = prompt('Please enter your name to react:');
-      if (!name) return;
-      setUserName(name);
+      if (!name || !name.trim()) return;
+      currentUserName = name.trim();
+      setUserName(currentUserName);
       if (typeof window !== 'undefined') {
-        localStorage.setItem('peppermint-chat-name', name);
+        localStorage.setItem('peppermint-chat-name', currentUserName);
       }
     }
 
     const existingReaction = commentReactions.find(
-      (r) => r.commentId === commentId && r.userName === (userName || '') && r.emoji === emoji
+      (r) => r.commentId === commentId && r.userName === currentUserName && r.emoji === emoji
     );
 
     if (existingReaction) {
@@ -352,7 +358,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
       // Add reaction
       const { error } = await supabase.from('comment_reactions').insert({
         comment_id: commentId,
-        user_name: userName || '',
+        user_name: currentUserName,
         emoji,
       });
 
