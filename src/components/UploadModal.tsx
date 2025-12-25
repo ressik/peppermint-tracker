@@ -69,7 +69,7 @@ export default function UploadModal({ isOpen, onClose, onUpload }: UploadModalPr
 
       // Save family name to localStorage for next time
       if (typeof window !== 'undefined') {
-        localStorage.setItem('peppermint-family-name', uploaderName);
+        localStorage.setItem('peppermint-family-name', uploaderName.trim());
       }
 
       // Reset form (but keep the name saved in localStorage)
