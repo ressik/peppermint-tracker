@@ -162,7 +162,6 @@ export default function MapPage() {
       {/* Legend */}
       <div className="mt-6 text-center text-white/60 text-sm">
         <p className="mb-2">🗺️ Click markers to see details about each stop</p>
-        <p>The red dashed line shows Peppermint&apos;s journey in chronological order</p>
       </div>
     </div>
   );
