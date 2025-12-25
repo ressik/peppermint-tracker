@@ -247,7 +247,7 @@ export default function Home() {
     // Insert record into database
     const { error: insertError } = await supabase.from('photos').insert({
       url: photoUrl,
-      uploader_name: data.uploaderName,
+      uploader_name: data.uploaderName.trim(),
       caption: data.caption || null,
       is_steal: data.isSteal,
       video_url: data.videoUrl || null,
