@@ -2,17 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import PhotoGallery from '@/components/PhotoGallery';
 import UploadModal from '@/components/UploadModal';
 import { Photo } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 import { getFCMToken, onMessageListener } from '@/lib/firebase';
 
+const PHOTOS_PER_PAGE = 10;
+
 export default function Home() {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [displayedCount, setDisplayedCount] = useState(PHOTOS_PER_PAGE);
 
   // Request FCM notification permission on mount
   useEffect(() => {
@@ -179,6 +183,12 @@ export default function Home() {
     setIsLoading(false);
   };
 
+  const loadMore = () => {
+    setDisplayedCount((prev) => Math.min(prev + PHOTOS_PER_PAGE, photos.length));
+  };
+
+  const hasMore = displayedCount < photos.length;
+
   const handleUpload = async (data: {
     file: File | null;
     uploaderName: string;
@@ -330,7 +340,25 @@ export default function Home() {
             <p className="text-white/40 text-sm">Loading...</p>
           </div>
         ) : (
-          <PhotoGallery photos={photos} />
+          <InfiniteScroll
+            dataLength={displayedCount}
+            next={loadMore}
+            hasMore={hasMore}
+            loader={
+              <div className="text-center py-4">
+                <p className="text-white/40 text-sm">Loading more...</p>
+              </div>
+            }
+            endMessage={
+              photos.length > PHOTOS_PER_PAGE ? (
+                <div className="text-center py-8">
+                  <p className="text-white/60 text-sm">All photos loaded! 🎄</p>
+                </div>
+              ) : null
+            }
+          >
+            <PhotoGallery photos={photos.slice(0, displayedCount)} />
+          </InfiniteScroll>
         )}
       </div>
 
