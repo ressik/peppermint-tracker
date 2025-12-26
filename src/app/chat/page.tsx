@@ -47,6 +47,8 @@ export default function ChatPage() {
 
   // Initialize FCM when user enters chat
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
     if (hasEnteredName && typeof window !== 'undefined') {
       const initFCM = async () => {
         try {
@@ -74,41 +76,47 @@ export default function ChatPage() {
               console.log('FCM token saved to database');
             }
           }
+
+          // Listen for foreground messages
+          unsubscribe = await onMessageListener((payload) => {
+            console.log('[Chat] Foreground message received:', payload);
+            console.log('[Chat] Document visible:', document.visibilityState, 'focused:', document.hasFocus());
+
+            // Only show notification if this tab is visible and focused
+            // This prevents multiple tabs from showing duplicate notifications
+            if (document.visibilityState === 'visible' && document.hasFocus()) {
+              if (Notification.permission === 'granted') {
+                const title = payload.notification?.title || 'New Chat Message';
+                const options = {
+                  body: payload.notification?.body || 'You have a new message',
+                  icon: '/icon-192.png',
+                  badge: '/icon-96.png',
+                };
+                console.log('[Chat] Showing foreground notification:', title);
+                new Notification(title, options);
+              }
+
+              // Vibrate
+              if ('vibrate' in navigator) {
+                navigator.vibrate(200);
+              }
+            } else {
+              console.log('[Chat] Tab not visible/focused, skipping foreground notification (service worker will handle it)');
+            }
+          });
         } catch (error) {
           console.error('Error initializing FCM in chat:', error);
         }
       };
 
       initFCM();
-
-      // Listen for foreground messages
-      onMessageListener((payload) => {
-        console.log('[Chat] Foreground message received:', payload);
-        console.log('[Chat] Document visible:', document.visibilityState, 'focused:', document.hasFocus());
-
-        // Only show notification if this tab is visible and focused
-        // This prevents multiple tabs from showing duplicate notifications
-        if (document.visibilityState === 'visible' && document.hasFocus()) {
-          if (Notification.permission === 'granted') {
-            const title = payload.notification?.title || 'New Chat Message';
-            const options = {
-              body: payload.notification?.body || 'You have a new message',
-              icon: '/icon-192.png',
-              badge: '/icon-96.png',
-            };
-            console.log('[Chat] Showing foreground notification:', title);
-            new Notification(title, options);
-          }
-
-          // Vibrate
-          if ('vibrate' in navigator) {
-            navigator.vibrate(200);
-          }
-        } else {
-          console.log('[Chat] Tab not visible/focused, skipping foreground notification (service worker will handle it)');
-        }
-      });
     }
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [hasEnteredName]);
 
   // Fetch initial messages and reactions, subscribe to new ones

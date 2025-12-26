@@ -91,7 +91,8 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
   useEffect(() => {
     if (photos.length > 0) {
       fetchReactions();
-      subscribeToReactions();
+      const cleanup = subscribeToReactions();
+      return cleanup;
     }
   }, [photos]);
 
@@ -99,7 +100,8 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
   useEffect(() => {
     if (comments.length > 0) {
       fetchCommentReactions();
-      subscribeToCommentReactions();
+      const cleanup = subscribeToCommentReactions();
+      return cleanup;
     }
   }, [comments]);
 

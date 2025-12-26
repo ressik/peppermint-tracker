@@ -108,7 +108,7 @@ export const getFCMToken = async (): Promise<string | null> => {
 };
 
 // Listen for foreground messages
-export const onMessageListener = async (callback: (payload: any) => void) => {
+export const onMessageListener = async (callback: (payload: any) => void): Promise<(() => void) | undefined> => {
   try {
     const messagingSupported = await isSupported();
     if (!messagingSupported) {
@@ -116,10 +116,12 @@ export const onMessageListener = async (callback: (payload: any) => void) => {
     }
 
     const messaging = getMessaging(app);
-    onMessage(messaging, (payload) => {
+    const unsubscribe = onMessage(messaging, (payload) => {
       console.log('Message received in foreground:', payload);
       callback(payload);
     });
+
+    return unsubscribe;
   } catch (error) {
     console.error('Error setting up message listener:', error);
   }

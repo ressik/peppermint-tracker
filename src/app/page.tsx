@@ -16,6 +16,8 @@ export default function Home() {
 
   // Request FCM notification permission on mount
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
+
     const initFCM = async () => {
       try {
         const token = await getFCMToken();
@@ -45,6 +47,34 @@ export default function Home() {
             console.log('FCM token saved to database');
           }
         }
+
+        // Listen for foreground messages
+        unsubscribe = await onMessageListener((payload) => {
+          console.log('[Homepage] Foreground message received:', payload);
+          console.log('[Homepage] Document visible:', document.visibilityState, 'focused:', document.hasFocus());
+
+          // Only show notification if this tab is visible and focused
+          // This prevents multiple tabs from showing duplicate notifications
+          if (document.visibilityState === 'visible' && document.hasFocus()) {
+            if (Notification.permission === 'granted') {
+              const title = payload.notification?.title || 'Peppermint Tracker';
+              const options = {
+                body: payload.notification?.body || 'New update!',
+                icon: '/icon-192.png',
+                badge: '/icon-96.png',
+              };
+              console.log('[Homepage] Showing foreground notification:', title);
+              new Notification(title, options);
+            }
+          } else {
+            console.log('[Homepage] Tab not visible/focused, skipping foreground notification (service worker will handle it)');
+          }
+
+          // Vibrate
+          if ('vibrate' in navigator) {
+            navigator.vibrate(200);
+          }
+        });
       } catch (error) {
         console.error('Error initializing FCM:', error);
       }
@@ -52,33 +82,11 @@ export default function Home() {
 
     initFCM();
 
-    // Listen for foreground messages
-    onMessageListener((payload) => {
-      console.log('[Homepage] Foreground message received:', payload);
-      console.log('[Homepage] Document visible:', document.visibilityState, 'focused:', document.hasFocus());
-
-      // Only show notification if this tab is visible and focused
-      // This prevents multiple tabs from showing duplicate notifications
-      if (document.visibilityState === 'visible' && document.hasFocus()) {
-        if (Notification.permission === 'granted') {
-          const title = payload.notification?.title || 'Peppermint Tracker';
-          const options = {
-            body: payload.notification?.body || 'New update!',
-            icon: '/icon-192.png',
-            badge: '/icon-96.png',
-          };
-          console.log('[Homepage] Showing foreground notification:', title);
-          new Notification(title, options);
-        }
-      } else {
-        console.log('[Homepage] Tab not visible/focused, skipping foreground notification (service worker will handle it)');
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
       }
-
-      // Vibrate
-      if ('vibrate' in navigator) {
-        navigator.vibrate(200);
-      }
-    });
+    };
   }, []);
 
   // Fetch photos from Supabase and subscribe to new uploads
