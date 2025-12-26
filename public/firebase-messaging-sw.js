@@ -37,8 +37,17 @@ if (!handlerRegistered) {
   messaging.onBackgroundMessage((payload) => {
     console.log('[Service Worker] onBackgroundMessage called:', payload);
 
-    const notificationTitle = payload.notification?.title || payload.data?.title || 'Peppermint Tracker';
-    const notificationBody = payload.notification?.body || payload.data?.body || 'New update!';
+    // IMPORTANT: If the payload contains a "notification" object, the browser will
+    // automatically display it. We should NOT manually show it here, or we'll get duplicates.
+    // Only handle data-only messages (no notification object).
+    if (payload.notification) {
+      console.log('[Service Worker] Notification payload detected - browser will auto-display. Skipping manual display.');
+      return Promise.resolve();
+    }
+
+    // Handle data-only messages
+    const notificationTitle = payload.data?.title || 'Peppermint Tracker';
+    const notificationBody = payload.data?.body || 'New update!';
 
     // Create a hash of the notification to detect duplicates
     const notificationHash = hashString(notificationTitle + notificationBody);

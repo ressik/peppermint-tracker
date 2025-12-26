@@ -2,15 +2,11 @@
 
 interface FCMMessage {
   token: string;
-  webpush?: {
-    notification?: {
-      title?: string;
-      body?: string;
-      icon?: string;
-    };
-    fcm_options?: {
-      link?: string;
-    };
+  data?: {
+    title?: string;
+    body?: string;
+    icon?: string;
+    link?: string;
   };
 }
 
@@ -31,20 +27,16 @@ export async function sendFCMNotification(
     const fcmUrl = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
 
     // Prepare message payload
-    // For web push, we send notification data in webpush section only
-    // This prevents FCM from auto-displaying notifications on Android
-    // and lets the service worker handle all notification display
-    const message: FCMMessage = {
+    // Send data-only payload (no "notification" object) to prevent browser auto-display.
+    // This gives the service worker full control over notification display,
+    // preventing duplicates and allowing custom handling.
+    const message: any = {
       token: token,
-      webpush: {
-        notification: {
-          title: title,
-          body: body,
-          icon: '/icon-192.png',
-        },
-        fcm_options: {
-          link: link,
-        },
+      data: {
+        title: title,
+        body: body,
+        icon: '/icon-192.png',
+        link: link,
       },
     };
 
