@@ -256,6 +256,49 @@ export default function FCMTestPage() {
     addLog('✅ Token copied to clipboard');
   };
 
+  const testDataOnlyFCM = async () => {
+    addLog('=== Testing Data-Only FCM Notification ===');
+
+    if (!token) {
+      addLog('❌ No FCM token. Click "Request FCM Token" first.');
+      return;
+    }
+
+    addLog('Sending data-only test notification via backend...');
+    addLog('This should show EXACTLY ONE notification (not duplicates)');
+
+    try {
+      // Call the Supabase Edge Function directly
+      const response = await fetch(
+        'https://hyeutwfvmtekonqfnzpq.supabase.co/functions/v1/test-data-notification',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            token: token,
+            title: '🧪 Data-Only Test',
+            body: 'If you see this ONLY ONCE, it works! (Check timestamp)',
+            timestamp: new Date().toLocaleTimeString(),
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        addLog('✅ Backend request successful');
+        addLog(`Response: ${JSON.stringify(data)}`);
+        addLog('🔔 Watch for notification - you should get EXACTLY ONE!');
+      } else {
+        const error = await response.text();
+        addLog(`❌ Backend error: ${error}`);
+      }
+    } catch (error) {
+      addLog(`❌ Error: ${error}`);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-900 p-8">
       <div className="max-w-4xl mx-auto">
@@ -325,6 +368,12 @@ export default function FCMTestPage() {
               Test SW Notification
             </button>
             <button
+              onClick={testDataOnlyFCM}
+              className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 font-semibold border-2 border-indigo-400"
+            >
+              🧪 Test Data-Only FCM (via Backend)
+            </button>
+            <button
               onClick={checkBrowserSettings}
               className="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
             >
@@ -369,14 +418,33 @@ export default function FCMTestPage() {
 
         {/* Instructions */}
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 mt-6">
-          <h3 className="text-white text-lg font-semibold mb-4">Instructions</h3>
-          <ol className="text-white/80 text-sm space-y-2 list-decimal list-inside">
-            <li>Click "Request FCM Token" and grant permission when prompted</li>
-            <li>Click "Test Direct Notification" - you should see a notification</li>
-            <li>Click "Test SW Notification" - you should see another notification</li>
-            <li>If both work, copy the token and test it in Firebase Console</li>
-            <li>If they don't work, check the logs for errors</li>
-          </ol>
+          <h3 className="text-white text-lg font-semibold mb-4">Testing Instructions</h3>
+
+          <div className="mb-4">
+            <h4 className="text-white/90 font-semibold mb-2">✅ Quick Test (Recommended):</h4>
+            <ol className="text-white/80 text-sm space-y-2 list-decimal list-inside">
+              <li>Click "Request FCM Token" and grant permission when prompted</li>
+              <li>Click "🧪 Test Data-Only FCM (via Backend)" - you should get EXACTLY ONE notification</li>
+              <li>Check the timestamp on the notification to confirm it's the latest one</li>
+              <li>If you get duplicates, check the logs and service worker console</li>
+            </ol>
+          </div>
+
+          <div className="mb-4">
+            <h4 className="text-white/90 font-semibold mb-2">🔧 Advanced Tests:</h4>
+            <ol className="text-white/80 text-sm space-y-2 list-decimal list-inside">
+              <li>"Test Direct Notification" - Tests browser notification API</li>
+              <li>"Test SW Notification" - Tests service worker notification</li>
+              <li>"Check Browser Settings" - View detailed browser config</li>
+            </ol>
+          </div>
+
+          <div className="bg-yellow-900/30 border border-yellow-500/50 rounded p-3">
+            <p className="text-yellow-200 text-sm">
+              <strong>⚠️ Important:</strong> The data-only test sends real FCM notifications through your backend.
+              This is the same format used for real chat/photo notifications, so it's the best way to verify the duplicate fix works!
+            </p>
+          </div>
         </div>
       </div>
     </div>

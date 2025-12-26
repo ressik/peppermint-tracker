@@ -319,6 +319,12 @@ export default function Home() {
             >
               Chat
             </Link>
+            <Link
+              href="/fcm-test"
+              className="px-5 py-2 text-sm font-medium text-white/70 hover:text-white transition-all"
+            >
+              🧪 Test
+            </Link>
           </div>
         </div>
       </div>
