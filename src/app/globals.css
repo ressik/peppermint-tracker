@@ -104,12 +104,15 @@ body {
 
 /* Gallery image hover */
 .gallery-image {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease;
 }
 
 .gallery-image:hover {
-  transform: scale(1.05);
   box-shadow: 0 10px 40px rgba(196, 30, 58, 0.3);
+}
+
+.gallery-image:hover .gallery-image-inner {
+  transform: scale(1.05);
 }
 
 /* Leaderboard row styles */
