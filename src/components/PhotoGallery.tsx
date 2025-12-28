@@ -420,7 +420,7 @@ export default function PhotoGallery({ photos }: PhotoGalleryProps) {
             }`}
             onClick={() => setSelectedPhoto(photo)}
           >
-            <div className="relative aspect-square overflow-hidden gallery-image-inner transition-transform duration-300 ease-in-out">
+            <div className="relative aspect-square overflow-hidden">
               <Image
                 src={photo.url || '/penguin-placeholder.jpg'}
                 alt={`Peppermint stolen by ${photo.uploaderName}`}
