@@ -559,12 +559,6 @@ export default function ChatPage() {
           >
             Rules
           </Link>
-          <Link
-            href="/fcm-test"
-            className="text-sm text-white/70 hover:text-white transition-all"
-          >
-            🧪 Test Notifications
-          </Link>
         </div>
       </div>
 
