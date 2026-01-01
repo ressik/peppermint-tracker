@@ -5,7 +5,6 @@ import Link from 'next/link';
 import InfiniteScroll from 'react-infinite-scroll-component';
 import PhotoGallery from '@/components/PhotoGallery';
 import UploadModal from '@/components/UploadModal';
-import CountdownClock from '@/components/CountdownClock';
 import { Photo } from '@/lib/types';
 import { supabase } from '@/lib/supabase';
 import { getFCMToken, onMessageListener } from '@/lib/firebase';
@@ -333,9 +332,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      {/* Countdown Clock */}
-      <CountdownClock />
 
       {/* Gallery Section */}
       <div className="mb-8">
