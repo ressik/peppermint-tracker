@@ -85,7 +85,7 @@ export default function CountdownClock() {
     <div className="w-full max-w-4xl mx-auto mb-12 px-4">
       <div className="bg-gradient-to-br from-[#c41e3a]/20 to-[#c41e3a]/10 border border-[#c41e3a]/30 rounded-2xl p-8 sm:p-12 text-center shadow-2xl">
         <p className="text-white/70 text-sm sm:text-base uppercase tracking-widest mb-4">
-          Time Until Noon (Utah Time)
+          Time Remaining
         </p>
         <div className="font-mono text-6xl sm:text-8xl md:text-9xl font-bold text-white tracking-wider mb-2">
           {timeRemaining || '00:00:00'}
