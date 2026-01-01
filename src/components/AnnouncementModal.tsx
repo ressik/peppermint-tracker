@@ -12,7 +12,7 @@ interface Announcement {
 // Update this configuration to show new announcements
 const CURRENT_ANNOUNCEMENT: Announcement = {
   id: 'thanks-for-playing-2025', // Change this ID to show a new message
-  title: 'Important Update',
+  title: 'Thank you for playing!!!',
   message: "Congrats to Bowers and Praters! Thank you all for playing our game! We hope it created memories and helped you get to know neighbors you didn't previously know. It definitely did for us! We have 3 more Peppermints in the wings for next year! Next year will start on 12/12 and will go until 12/24. Come back and play again!",
   buttonText: 'Continue',
 };
