@@ -286,8 +286,6 @@ export default function Home() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <CountdownClock />
-
       {/* Hero Section */}
       <div className="text-center mb-16">
         <p className="text-white/60 text-xs uppercase tracking-[0.3em] mb-4">
@@ -335,6 +333,8 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      <CountdownClock />
 
       {/* Gallery Section */}
       <div className="mb-8">
