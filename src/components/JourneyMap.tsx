@@ -64,7 +64,7 @@ export default function JourneyMap({ photos }: JourneyMapProps) {
     if (!mounted || sortedPhotos.length === 0) return;
 
     const totalLocations = sortedPhotos.length;
-    const animationDuration = 1000; // Total animation time in ms per location
+    const animationDuration = 250; // Total animation time in ms per location
     const fps = 60;
     const frameInterval = 1000 / fps;
     const totalFrames = (animationDuration / frameInterval) * totalLocations;
